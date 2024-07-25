@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2024 Nordic Semiconductor
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+
+menu "Nordic nRF70 BM configuration"
+
+rsource "nrf70_zephyr_shim/Kconfig"
+rsource "nrf70_bm_lib/Kconfig"
+
+endmenu

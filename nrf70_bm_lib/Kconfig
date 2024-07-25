@@ -1,0 +1,37 @@
+#
+# Copyright (c) 2024 Nordic Semiconductor
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+menu "Nordic nRF70 BM configuration"
+
+config NRF70_BM_LIB
+	bool "Enable nRF70 BM library"
+	select NRF_WIFI
+	help
+	  Enable the nRF70 BM library.
+
+config NRF70_BM_LOG_LEVEL
+	int "Log level for nRF70 BM library"
+	default 3
+	range 0 4
+	help
+		Log level for nRF70 BM library.
+
+config NRF70_SCAN_SSID_FILT_MAX
+	int "Maximum number of SSIDs that can be specified for SSID filtering"
+	default 1
+	range 1 4
+	help
+	  Maximum number of SSIDs that can be specified for SSID filtering.
+	  This can be set based on the underlying chipsets limitations.
+
+config NRF70_SCAN_CHAN_MAX_MANUAL
+	int "Maximum number of channels that can be manually specified"
+	range 1 110
+	default 3
+	help
+	  There are approximately 100 channels allocated across the three supported bands.
+	  The default of 3 allows the 3 most common channels (2.4GHz: 1, 6, 11) to be specified.
+
+endmenu
