@@ -1,0 +1,9 @@
+# Copyright (c) 2024 Nordic Semiconductor ASA
+# SPDX-License-Identifier: BSD-3-Clause
+
+build:
+  cmake: .
+  kconfig: Kconfig.nrf70bm
+  depends:
+  - hal_nordic
+

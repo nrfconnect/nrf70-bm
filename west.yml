@@ -1,0 +1,20 @@
+# Copyright (c) 2024 Nordic Semiconductor ASA
+# SPDX-License-Identifier: BSD-3-Clause
+
+manifest:
+  remotes:
+    - name: ncs
+      url-base: https://github.com/nrfconnect
+
+  projects:
+    - name: nrf
+      remote: ncs
+      repo-path: sdk-nrf
+      revision: v2.7.0
+      import: true
+
+    # TODO: Once west supports sparse checkout, we should use it here.
+    - name: nrfxlib
+      remote: ncs
+      repo-path: sdk-nrfxlib
+      revision: pull/1414/head
