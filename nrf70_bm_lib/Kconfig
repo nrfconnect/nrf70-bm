@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2024 Nordic Semiconductor
+# Copyright (c) 2024 Nordic Semiconductor ASA
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -21,7 +21,7 @@ config NRF70_BM_LOG_LEVEL
 config NRF70_SCAN_SSID_FILT_MAX
 	int "Maximum number of SSIDs that can be specified for SSID filtering"
 	default 1
-	range 1 4
+	range 1 2
 	help
 	  Maximum number of SSIDs that can be specified for SSID filtering.
 	  This can be set based on the underlying chipsets limitations.
@@ -34,4 +34,74 @@ config NRF70_SCAN_CHAN_MAX_MANUAL
 	  There are approximately 100 channels allocated across the three supported bands.
 	  The default of 3 allows the 3 most common channels (2.4GHz: 1, 6, 11) to be specified.
 
+config NRF_WIFI_SCAN_MAX_BSS_CNT
+	int "Maximum number of scan results to return."
+	default 0
+	range 0 65535
+	help
+	  Maximum number of scan results to return. 0 represents unlimited number of BSSes.
+
+config NRF70_FIXED_MAC_ADDRESS
+	string "WiFi Fixed MAC address in format XX:XX:XX:XX:XX:XX"
+	help
+	  This overrides the MAC address read from OTP. Strictly for testing purposes only.
+
+choice
+	prompt "Wi-Fi MAC address type"
+	default NRF70_OTP_MAC_ADDRESS if NRF70_FIXED_MAC_ADDRESS = ""
+	default NRF70_FIXED_MAC_ADDRESS_ENABLED if NRF70_FIXED_MAC_ADDRESS != ""
+	help
+	  Select the type of MAC address to be used by the Wi-Fi driver
+
+config NRF70_OTP_MAC_ADDRESS
+	bool "Use MAC address from OTP"
+	help
+	  This option uses the MAC address stored in the OTP memory of the nRF700x.
+
+config NRF70_FIXED_MAC_ADDRESS_ENABLED
+	bool "Enable fixed MAC address"
+	help
+	  Enable fixed MAC address
+endchoice
+
+config NRF700X_LOG_VERBOSE
+	bool "Maintains the verbosity of information in logs"
+	default y
+
+config NRF_WIFI_LOW_POWER
+	bool "Enable low power mode in nRF Wi-Fi chipsets"
+	default y
+
+config NRF_WIFI_BEAMFORMING
+	bool "Enable Wi-Fi beamforming"
+	default y
+	help
+	  Enabling beamforming can provide slight improvement in performance where as disabling
+	  it can provide better power saving in low network activity applications
+
+menu "nRF Wi-Fi operation band(s)"
+	visible if !NRF70_2_4G_ONLY
+
+config NRF_WIFI_2G_BAND
+	bool "Set operation band to 2.4GHz"
+	default y if NRF70_2_4G_ONLY
+
+config NRF_WIFI_5G_BAND
+	bool "Set operation band to 5GHz"
+	depends on !NRF70_2_4G_ONLY
+
+config NRF_WIFI_OP_BAND
+	int "Options to set operation band"
+	default 1 if NRF_WIFI_2G_BAND
+	default 2 if NRF_WIFI_5G_BAND
+	default 3
+	help
+	  Set this option to select frequency band
+	  1 - 2.4GHz
+	  2 - 5GHz
+	  3 - All ( 2.4GHz and 5GHz )
+endmenu
+
+config SYSTEM_WORKQUEUE_STACK_SIZE
+	default 2560
 endmenu

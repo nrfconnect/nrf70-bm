@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2024 Nordic Semiconductor
+# Copyright (c) 2024 Nordic Semiconductor ASA
 #
 # SPDX-License-Identifier: BSD-3-Clause
 #
@@ -27,6 +27,20 @@ config WIFI_NRF700X_BUS_LOG_LEVEL
        # Enable error by default
        default 1
 
+module = WIFI_NRF700X
+module-dep = LOG
+module-str = Log level for Wi-Fi nRF700x driver
+module-help = Sets log level for Wi-Fi nRF700x driver
+source "subsys/logging/Kconfig.template.log_config"
+
+config WIFI_NRF700X_LOG_LEVEL
+	# Enable error by default
+	default 1
+
+config NRF_WIFI_LOW_POWER
+	bool "Enable low power mode in nRF Wi-Fi chipsets"
+	default y
+
 config NRF700X_IRQ_WQ_PRIORITY
   int "Priority of the workqueue for handling IRQs"
   default -15
@@ -52,4 +66,8 @@ config NRF700X_WORKQ_MAX_ITEMS
   default 100
 
 config HEAP_MEM_POOL_SIZE
-	default 25000
+	default 30000
+
+config NRF700X_LOG_VERBOSE
+	bool "Maintains the verbosity of information in logs"
+	default y

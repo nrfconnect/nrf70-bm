@@ -24,7 +24,7 @@ if (CONFIG_NRF70_BM_LIB)
     nrf70-bm-lib
     PRIVATE
     source/nrf70_bm_lib.c
-    source/nrf70_bm_init.c
+    source/nrf70_bm_core.c
   )
 
   target_link_libraries(nrf70-bm-lib PRIVATE nrf-wifi nrf70-zep-shim)
