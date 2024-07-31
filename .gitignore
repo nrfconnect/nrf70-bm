@@ -1,0 +1,13 @@
+# Sphinx build directories
+_build/
+build/
+html/
+latex/
+
+# Doxygen generated files
+xml/
+
+# Temporary files
+*.log
+*.tmp
+*.bak
