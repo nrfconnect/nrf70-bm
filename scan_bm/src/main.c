@@ -11,6 +11,10 @@
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/logging/log_ctrl.h>
+#include <zephyr/net/wifi_mgmt.h>
+#include <zephyr/net/wifi_utils.h>
+
+#include <stdlib.h>
 
 LOG_MODULE_REGISTER(nrf70_scan_bm, CONFIG_NR70_SCAN_BM_SAMPLE_LOG_LEVEL);
 
@@ -53,9 +57,43 @@ void scan_result_cb(struct nrf70_scan_result *entry)
 	   nrf70_mfp_txt(entry->mfp));
 }
 
+static int prepare_scan_params(struct nrf70_scan_params *params)
+{
+	int band_str_len = sizeof(CONFIG_WIFI_SCAN_BANDS_LIST);
+
+	if (band_str_len - 1) {
+		char *buf = malloc(band_str_len);
+
+		if (!buf) {
+			LOG_ERR("Malloc Failed");
+			return -EINVAL;
+		}
+		strcpy(buf, CONFIG_WIFI_SCAN_BANDS_LIST);
+		if (wifi_utils_parse_scan_bands(buf, &params->bands)) {
+			LOG_ERR("Incorrect value(s) in CONFIG_WIFI_SCAN_BANDS_LIST: %s",
+					CONFIG_WIFI_SCAN_BANDS_LIST);
+			free(buf);
+			return -ENOEXEC;
+		}
+		free(buf);
+	}
+
+	if (sizeof(CONFIG_WIFI_SCAN_CHAN_LIST) - 1) {
+		if (wifi_utils_parse_scan_chan(CONFIG_WIFI_SCAN_CHAN_LIST,
+						(struct wifi_band_channel *)params->band_chan,
+						ARRAY_SIZE(params->band_chan))) {
+			LOG_ERR("Incorrect value(s) in CONFIG_WIFI_SCAN_CHAN_LIST: %s",
+					CONFIG_WIFI_SCAN_CHAN_LIST);
+			return -ENOEXEC;
+		}
+	}
+
+	return 0;
+}
+
 int main(void)
 {
-	//struct nrf70_scan_params scan_params = { 0 };
+	struct nrf70_scan_params scan_params = { 0 };
 	int ret;
 
 	LOG_INF("WiFi scan sample application using nRF70 Bare Metal library");
@@ -65,10 +103,13 @@ int main(void)
 
 	LOG_INF("Scanning for WiFi networks...");
 
+	// Prepare scan parameters
+	CHECK_RET(prepare_scan_params(&scan_params));
+
 	while (1)
 	{
 		// Start scanning for WiFi networks
-		CHECK_RET(nrf70_scan_start(NULL, scan_result_cb));
+		CHECK_RET(nrf70_scan_start(&scan_params, scan_result_cb));
 
 		// Wait for the scan to complete or timeout
 		unsigned int timeout = 30000;
