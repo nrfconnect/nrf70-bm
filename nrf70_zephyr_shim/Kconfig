@@ -31,7 +31,7 @@ module = WIFI_NRF700X
 module-dep = LOG
 module-str = Log level for Wi-Fi nRF700x driver
 module-help = Sets log level for Wi-Fi nRF700x driver
-source "subsys/logging/Kconfig.template.log_config"
+source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 
 config WIFI_NRF700X_LOG_LEVEL
 	# Enable error by default
