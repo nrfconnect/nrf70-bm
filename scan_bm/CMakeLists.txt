@@ -13,6 +13,11 @@ target_include_directories(app PRIVATE
   $<TARGET_PROPERTY:nrf70-bm-lib,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
-target_sources(app PRIVATE src/main.c)
+target_sources(
+  app
+  PRIVATE
+  src/main.c
+  src/utils.c
+)
 
 target_link_libraries(app PRIVATE nrf70-bm-lib)
