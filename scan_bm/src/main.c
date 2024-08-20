@@ -132,7 +132,7 @@ int main(void)
 			printf("Scan complete\n");
 		}
 
-		k_sleep(K_MSEC(5000));
+		k_sleep(K_MSEC(CONFIG_WIFI_SCAN_INTERVAL_S * 1000));
 	}
 
 	// Clean up the WiFi module
