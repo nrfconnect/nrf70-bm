@@ -247,6 +247,7 @@ typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
  */
 int nrf70_init(void);
 
+#if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Start scanning for WiFi networks.
  * 
  * @param[in] scan_params Scan parameters.
@@ -260,6 +261,7 @@ int nrf70_init(void);
  */
 int nrf70_scan_start(struct nrf70_scan_params *scan_params,
 					 nrf70_scan_result_cb_t cb);
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 
 /**@brief Clean up the WiFi module.
  */

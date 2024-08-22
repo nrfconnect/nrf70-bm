@@ -13,6 +13,7 @@
 
 #include "util.h"
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 /* Overlay struct to avoid dynamic memory allocation */
 typedef struct  __attribute__((packed)) scan_info_overlay {
 	struct nrf_wifi_umac_scan_info scan_info;
@@ -85,6 +86,7 @@ static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands ba
 		return NRF_WIFI_BAND_INVALID;
 	}
 }
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 
 int nrf70_init(void)
 {
@@ -96,20 +98,23 @@ int nrf70_init(void)
 		NRF70_LOG_ERR("Failed to initialize FMAC module");
 		goto err;
 	}
-
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	ret = nrf70_fmac_add_vif_sta();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to add STA VIF");
 		goto deinit;
 	}
-
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 	return 0;
+#ifndef CONFIG_NRF700X_RADIO_TEST
 deinit:
 	nrf70_fmac_deinit();
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 err:
 	return ret;
 }
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 int nrf70_scan_start(struct nrf70_scan_params *params,
 					 nrf70_scan_result_cb_t cb)
 {
@@ -294,17 +299,19 @@ bool nrf70_scan_done(void)
 
 	return vif->scan_done;
 }
-
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 
 int nrf70_deinit(void)
 {
 	int
 
+#ifndef CONFIG_NRF700X_RADIO_TEST
 	ret = nrf70_fmac_del_vif_sta();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to delete STA VIF");
 		goto err;
 	}
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 
 	// Clean up the WiFi module
 	ret = nrf70_fmac_deinit();

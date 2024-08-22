@@ -30,7 +30,9 @@ struct nrf70_wifi_vif_bm {
 	unsigned short max_bss_cnt;
 	unsigned short scan_res_cnt;
 	unsigned char mac_addr[6];
+#ifndef CONFIG_NRF70_RADIO_TEST
 	enum nrf_wifi_fmac_if_op_state op_state;
+#endif /* CONFIG_NRF70_RADIO_TEST */
 	bool scan_done;
 	void (*scan_result_cb)(void *result);
 };
@@ -38,6 +40,11 @@ struct nrf70_wifi_vif_bm {
 struct nrf70_wifi_ctx_bm {
 	void *rpu_ctx;
 	struct nrf70_wifi_vif_bm vifs[NRF70_BM_NUM_VIFS];
+#ifdef CONFIG_NRF70_RADIO_TEST
+	struct rpu_conf_params conf_params;
+	bool rf_test_run;
+	unsigned char rf_test;
+#endif /* CONFIG_NRF70_RADIO_TEST */
 };
 
 struct nrf70_wifi_drv_priv_bm {
