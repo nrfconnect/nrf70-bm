@@ -92,6 +92,7 @@ static enum nrf_wifi_status nrf_wifi_fw_load(void *rpu_ctx)
 	return status;
 }
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 static void reg_change_callbk_fn(void *vif_ctx,
 			  struct nrf_wifi_event_regulatory_change *reg_change_event,
 			  unsigned int event_len)
@@ -222,16 +223,19 @@ static void nrf_wifi_event_proc_disp_scan_res_zep(void *vif_ctx,
 		vif->scan_result_cb(NULL);
 	}
 }
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
 int nrf70_fmac_init(void)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifndef CONFIG_NRF70_RADIO_TEST
 	struct nrf_wifi_fmac_callbk_fns callbk_fns = { 0 };
 	struct nrf_wifi_data_config_params data_config = { 0 };
 	struct rx_buf_pool_params rx_buf_pools[MAX_NUM_OF_RX_QUEUES] = { 0 };
+	struct nrf70_wifi_vif_bm *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+#endif /* CONFIG_NRF70_RADIO_TEST */
 	unsigned int fw_ver = 0;
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
-	struct nrf70_wifi_vif_bm *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
 	struct nrf_wifi_tx_pwr_ctrl_params tx_pwr_ctrl_params = { 0 };
 	/* TODO: Hardcoded to 10 dBm, take as parameter */
 	struct nrf_wifi_tx_pwr_ceil_params tx_pwr_ceil_params = { 40 };
@@ -248,8 +252,13 @@ int nrf70_fmac_init(void)
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
 
-	NRF70_LOG_DBG("Initializing FMAC module");
+#ifndef CONFIG_NRF70_RADIO_TEST
+	NRF70_LOG_DBG("Initializing FMAC module in system mode");
+#else
+	NRF70_LOG_DBG("Initializing FMAC module in radio test mode");
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 	vif->vif_idx = MAX_NUM_VIFS;
 
 	/* Won't be used, but API requires it */
@@ -266,11 +275,16 @@ int nrf70_fmac_init(void)
 	callbk_fns.scan_done_callbk_fn = nrf_wifi_event_proc_scan_done_zep;
 	//callbk_fns.scan_abort_callbk_fn = nrf_wifi_event_proc_scan_abort_zep;
 	callbk_fns.disp_scan_res_callbk_fn = nrf_wifi_event_proc_disp_scan_res_zep;
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 	// Initialize the FMAC module
 	nrf70_bm_priv.fmac_priv = nrf_wifi_fmac_init(&data_config,
 												 rx_buf_pools,
 												 &callbk_fns);
+#else
+	nrf70_bm_priv.fmac_priv = nrf_wifi_fmac_init_rt();
+#endif /* CONFIG_NRF70_RADIO_TEST */
 	if (!nrf70_bm_priv.fmac_priv) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module\n");
 		goto err;
@@ -307,6 +321,7 @@ int nrf70_fmac_init(void)
 	enable_bf = true;
 #endif
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 	status = nrf_wifi_fmac_dev_init(rpu_ctx,
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
 					sleep_type,
@@ -317,6 +332,18 @@ int nrf70_fmac_init(void)
 					&tx_pwr_ctrl_params,
 					&tx_pwr_ceil_params,
 					&board_params);
+#else
+	status = nrf_wifi_fmac_dev_init_rt(rpu_ctx,
+#ifdef CONFIG_NRF_WIFI_LOW_POWER
+					sleep_type,
+#endif /* CONFIG_NRF_WIFI_LOW_POWER */
+					NRF_WIFI_DEF_PHY_CALIB,
+					op_band,
+					enable_bf,
+					&tx_pwr_ctrl_params,
+					&tx_pwr_ceil_params,
+					&board_params);
+#endif /* CONFIG_NRF70_RADIO_TEST */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("Failed to initialize device\n");
 		goto deinit;
@@ -380,6 +407,7 @@ err:
 	return status;
 }
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 #define STA_VIF_NAME "wlan0"
 int nrf70_fmac_add_vif_sta(void)
 {
@@ -475,14 +503,21 @@ int nrf70_fmac_del_vif_sta(void)
 err:
 	return -1;
 }
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
 int nrf70_fmac_deinit(void)
 {
 	NRF70_LOG_DBG("Deinitializing FMAC module");
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 	nrf_wifi_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
 	nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
 	nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+#else
+	nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
+	nrf_wifi_fmac_dev_rem_rt(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
 	nrf70_bm_priv.fmac_priv = NULL;
 	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = NULL;

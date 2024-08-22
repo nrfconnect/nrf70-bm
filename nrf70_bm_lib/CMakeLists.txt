@@ -15,8 +15,22 @@ if (CONFIG_NRF70_BM_LIB)
     $<TARGET_PROPERTY:nrf-wifi,PUBLIC_INCLUDE_DIRECTORIES>
   )
 
-  target_compile_definitions(nrf70-bm-lib PRIVATE
+  target_compile_definitions_ifndef(CONFIG_NRF70_RADIO_TEST
+    nrf70-bm-lib
+    PRIVATE
     -DCONFIG_NRF_WIFI_FW_BIN=${NRF_WIFI_DIR}/fw_bins/scan_only/nrf70.bin
+  )
+
+  target_compile_definitions_ifdef(CONFIG_NRF70_RADIO_TEST
+    nrf70-bm-lib
+    PRIVATE
+    -DCONFIG_NRF_WIFI_FW_BIN=${NRF_WIFI_DIR}/fw_bins/radio_test/nrf70.bin
+  )
+
+  target_compile_definitions_ifdef(CONFIG_NRF70_RADIO_TEST
+    nrf70-bm-lib
+    PRIVATE
+    -DCONFIG_NRF700X_RADIO_TEST
   )
 
 
