@@ -9,9 +9,9 @@ cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(nrf_wifi_radio_test)
 
-set(NRF_WIFI_DIR ../../nrfxlib/nrf_wifi)
-set(NRF70_BM_DIR ../nrf70_bm_lib)
-set(NRF70_SHIM_DIR ../nrf70_zephyr_shim)
+set(NRF_WIFI_DIR ../../../nrfxlib/nrf_wifi)
+set(NRF70_BM_DIR ../../nrf70_bm_lib)
+set(NRF70_SHIM_DIR ../../nrf70_zephyr_shim)
 
 target_compile_definitions(app PRIVATE
 	-DCONFIG_NRF700X_RADIO_TEST # OSAL
