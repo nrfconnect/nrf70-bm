@@ -4,6 +4,11 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
+# Check if ZEPHYR_BASE is set
+if(NOT DEFINED ENV{ZEPHYR_BASE})
+    message(FATAL_ERROR "ZEPHYR_BASE environment variable is not set. Please set it to the Zephyr base directory.")
+endif()
+
 if (CONFIG_NRF70_BM_LIB)
   add_library(nrf70-bm-lib STATIC)
 
