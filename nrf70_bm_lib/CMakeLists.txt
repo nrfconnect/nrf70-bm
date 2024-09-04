@@ -13,6 +13,8 @@ if (CONFIG_NRF70_BM_LIB)
     include
     # OS agnostic library
     $<TARGET_PROPERTY:nrf-wifi,PUBLIC_INCLUDE_DIRECTORIES>
+    # Inlucde till the last directory to avoid using Zephyr in BM code
+    ${ZEPHYR_BASE}/include/zephyr
   )
 
   target_compile_definitions_ifndef(CONFIG_NRF70_RADIO_TEST
