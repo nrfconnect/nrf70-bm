@@ -8,9 +8,9 @@
  * @brief NRF Wi-Fi radio test shell module
  */
 
-#include <util.h>
 #include <nrf70_bm_core.h>
 #include <nrf_wifi_radio_test_shell.h>
+#include <util.h>
 #include "ficr_prog.h"
 
 #include "fmac_api_common.h"
