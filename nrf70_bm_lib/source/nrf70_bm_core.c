@@ -7,16 +7,20 @@
 /** @file
  * @brief nRF70 Bare Metal initialization.
  */
-
-/* Should be provided by the Platform/OS */
-#include <devicetree.h>
-
 #include "nrf70_bm_core.h"
 #include "nrf70_bm_lib.h"
 
 #include "util.h"
 #include "fmac_api.h"
 #include "fmac_util.h"
+
+#ifdef CONFIG_NRF700X_BOARD_TYPE_DK
+#include "nrf70_tx_pwr_ceil_dk.h"
+#elif CONFIG_NRF700X_BOARD_TYPE_EK
+#include "nrf70_tx_pwr_ceil_ek.h"
+#else
+#error "Please prepare tx power ceiling header file for your board"
+#endif
 
 struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
 
@@ -283,35 +287,19 @@ static void configure_tx_pwr_settings(struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr
 	tx_pwr_ctrl_params->band_edge_5g_unii_4_hi_he =
 		CONFIG_NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF_HE;
 
+	/* Set power ceiling parameters */
+	tx_pwr_ceil_params->max_pwr_2g_dsss = MAX_PWR_2G_DSSS;
+	tx_pwr_ceil_params->max_pwr_2g_mcs7 = MAX_PWR_2G_MCS7;
+	tx_pwr_ceil_params->max_pwr_2g_mcs0 = MAX_PWR_2G_MCS0;
 
-	tx_pwr_ceil_params->max_pwr_2g_dsss =
-			DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_2g_dsss);
-
-	tx_pwr_ceil_params->max_pwr_2g_mcs7 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_2g_mcs7);
-
-	tx_pwr_ceil_params->max_pwr_2g_mcs0 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_2g_mcs0);
-
-#ifndef CONFIG_NRF70_2_4G_ONLY
-	tx_pwr_ceil_params->max_pwr_5g_low_mcs7 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_5g_low_mcs7);
-
-	tx_pwr_ceil_params->max_pwr_5g_mid_mcs7 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_5g_mid_mcs7);
-
-	tx_pwr_ceil_params->max_pwr_5g_high_mcs7 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_5g_high_mcs7);
-
-	tx_pwr_ceil_params->max_pwr_5g_low_mcs0 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_5g_low_mcs0);
-
-	tx_pwr_ceil_params->max_pwr_5g_mid_mcs0 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_5g_mid_mcs0);
-
-	tx_pwr_ceil_params->max_pwr_5g_high_mcs0 =
-		DT_PROP(DT_NODELABEL(nrf70_tx_power_ceiling), max_pwr_5g_high_mcs0);
-#endif /* CONFIG_NRF70_2_4G_ONLY */
+	#ifndef CONFIG_NRF70_2_4G_ONLY
+	tx_pwr_ceil_params->max_pwr_5g_low_mcs7 = MAX_PWR_5G_LOW_MCS7;
+	tx_pwr_ceil_params->max_pwr_5g_mid_mcs7 = MAX_PWR_5G_MID_MCS7;
+	tx_pwr_ceil_params->max_pwr_5g_high_mcs7 = MAX_PWR_5G_HIGH_MCS7;
+	tx_pwr_ceil_params->max_pwr_5g_low_mcs0 = MAX_PWR_5G_LOW_MCS0;
+	tx_pwr_ceil_params->max_pwr_5g_mid_mcs0 = MAX_PWR_5G_MID_MCS0;
+	tx_pwr_ceil_params->max_pwr_5g_high_mcs0 = MAX_PWR_5G_HIGH_MCS0;
+	#endif /* CONFIG_NRF70_2_4G_ONLY */
 }
 
 static void configure_board_dep_params(struct nrf_wifi_board_params *board_params)

@@ -290,4 +290,24 @@ config NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF_HE
 	int "HE Transmit power backoff (in dB) for upper edge of UNII-4 frequency band"
 	default 0
 	range 0 10
+
+choice "Board type"
+	prompt "Select the board type"
+	default NRF700X_BOARD_TYPE_DK
+
+config NRF700X_BOARD_TYPE_DK
+	bool "Development Kit"
+	help
+	  Select this option if the nRF70 is mounted on a development kit.
+
+config NRF700X_BOARD_TYPE_EK
+	bool "Evaluation Kit"
+	help
+	  Select this option if the nRF70 is mounted on an evaluation kit.
+
+config NRF700X_BOARD_TYPE_CUSTOM
+	bool "Custom board"
+	help
+	  Select this option if the nRF70 is mounted on a custom board.
+endchoice
 endmenu
