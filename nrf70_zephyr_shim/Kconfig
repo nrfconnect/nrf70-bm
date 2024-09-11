@@ -22,23 +22,21 @@ config NRF700X_ON_SPI
 	def_bool $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF700X_SPI))
 	select SPI
 
-module = WIFI_NRF700X_BUS
+module = WIFI_NRF700X_SHIM_BUS
 module-dep = LOG
 module-str = Log level for nR70 Zephyr shim
-module-help = Sets log level for nRF70 Zephyr shim.
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 
-config WIFI_NRF700X_BUS_LOG_LEVEL
+config WIFI_NRF700X_SHIM_BUS_LOG_LEVEL
        # Enable error by default
        default 1
 
-module = WIFI_NRF700X
+module = WIFI_NRF700X_SHIM
 module-dep = LOG
 module-str = Log level for Wi-Fi nRF700x driver
-module-help = Sets log level for Wi-Fi nRF700x driver
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 
-config WIFI_NRF700X_LOG_LEVEL
+config WIFI_NRF700X_SHIM_LOG_LEVEL
 	# Enable error by default
 	default 1
 

@@ -15,7 +15,7 @@
 #include "ficr_prog.h"
 
 
-LOG_MODULE_REGISTER(otp_prog, CONFIG_WIFI_NRF700X_BUS_LOG_LEVEL);
+LOG_MODULE_REGISTER(otp_prog, CONFIG_WIFI_NRF700X_SHIM_BUS_LOG_LEVEL);
 
 static void write_word(unsigned int addr, unsigned int data)
 {
