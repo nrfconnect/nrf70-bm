@@ -31,8 +31,4 @@ if (CONFIG_NRF70_ZEPHYR_SHIM)
   zephyr_library_sources(source/device.c)
   zephyr_library_sources(source/work.c)
   zephyr_library_sources(source/timer.c)
-
-  zephyr_library_sources_ifdef(CONFIG_NRF70_RADIO_TEST
-    source/ficr_prog.c
-  )
 endif()
