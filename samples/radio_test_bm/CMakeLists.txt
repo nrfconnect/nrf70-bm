@@ -38,6 +38,7 @@ target_sources(app PRIVATE
 	src/nrf_wifi_radio_test_main.c
 	src/nrf_wifi_radio_test_shell.c
 	src/nrf_wifi_radio_ficr_shell.c
+	src/nrf_wifi_ficr_prog.c
 )
 
 target_link_libraries(app PRIVATE nrf-wifi nrf70-zep-shim nrf70-bm-lib)
