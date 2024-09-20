@@ -10,6 +10,7 @@ if(NOT DEFINED ENV{ZEPHYR_BASE})
 endif()
 
 if (CONFIG_NRF70_ZEPHYR_SHIM)
+  set(NRF_DRV_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/../nrf/drivers/wifi/nrf700x)
   set(NRF_WIFI_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/../nrfxlib/nrf_wifi)
 
   zephyr_library_named(nrf70-zep-shim)
@@ -24,7 +25,7 @@ if (CONFIG_NRF70_ZEPHYR_SHIM)
   zephyr_library_sources(source/platform/rpu_hw_if.c)
 
   zephyr_library_sources_ifdef(CONFIG_NRF700X_ON_QSPI
-    source/bus/qspi_if.c
+    ${NRF_DRV_DIR}/src/qspi/src/qspi_if.c
   )
   zephyr_library_sources_ifdef(CONFIG_NRF700X_ON_SPI
     source/bus/spi_if.c
