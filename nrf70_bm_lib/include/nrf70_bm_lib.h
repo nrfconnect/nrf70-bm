@@ -245,7 +245,7 @@ typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
  */
-int nrf70_init(void);
+int nrf70_bm_init(void);
 
 #if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Start scanning for WiFi networks.
@@ -259,13 +259,13 @@ int nrf70_init(void);
  * @retval -EIO If the operation failed.
  * @retval -ENOMEM If there is not enough memory to start the scan.
  */
-int nrf70_scan_start(struct nrf70_scan_params *scan_params,
+int nrf70_bm_scan_start(struct nrf70_scan_params *scan_params,
 					 nrf70_scan_result_cb_t cb);
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
 /**@brief Clean up the WiFi module.
  */
-int nrf70_deinit(void);
+int nrf70_bm_deinit(void);
 
 /**@brief Convert a MAC address to a string.
  *
@@ -273,7 +273,7 @@ int nrf70_deinit(void);
  * @param[out] mac_str MAC address string.
  * @param[in] size Size of the MAC address string.
  */
-void nrf70_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
+void nrf70_bm_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
 
 #if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Get the nRF70 statistics.
@@ -284,7 +284,7 @@ void nrf70_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
  * @retval -EINVAL If the type is invalid.
  * @retval -EIO If the operation failed.
  */
-int nrf_wifi_util_dump_rpu_stats(const char *type);
+int nrf70_bm_dump_stats(const char *type);
 #endif
 
 #ifdef __cplusplus

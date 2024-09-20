@@ -50,7 +50,7 @@ void scan_result_cb(struct nrf70_scan_result *entry)
 		   "Num", "SSID", "Chan (Band)", "RSSI", "Security", "BSSID", "MFP");
 	}
 
-	nrf70_mac_txt(entry->bssid, bssid_str, sizeof(bssid_str));
+	nrf70_bm_mac_txt(entry->bssid, bssid_str, sizeof(bssid_str));
 	printf("%-4d | %-32s | %-4u (%-6s) | %-4d | %-15s | %-17s | %-8s\n",
 		   scan_result_cnt, entry->ssid, entry->channel,
 		   nrf70_band_txt(entry->band),
@@ -101,7 +101,7 @@ int main(void)
 	printf("WiFi scan sample application using nRF70 Bare Metal library\n");
 
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_init());
+	CHECK_RET(nrf70_bm_init());
 
 	printf("Scanning for WiFi networks...\n");
 
@@ -111,7 +111,7 @@ int main(void)
 	while (1)
 	{
 		// Start scanning for WiFi networks
-		CHECK_RET(nrf70_scan_start(&scan_params, scan_result_cb));
+		CHECK_RET(nrf70_bm_scan_start(&scan_params, scan_result_cb));
 
 		// Wait for the scan to complete or timeout
 		unsigned int timeout = 30000;
@@ -136,7 +136,7 @@ int main(void)
 	}
 
 	// Clean up the WiFi module
-	CHECK_RET(nrf70_deinit());
+	CHECK_RET(nrf70_bm_deinit());
 
 	ret = 0;
 

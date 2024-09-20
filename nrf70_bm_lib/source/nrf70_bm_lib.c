@@ -88,7 +88,7 @@ static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands ba
 }
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
-int nrf70_init(void)
+int nrf70_bm_init(void)
 {
 	int ret;
 
@@ -115,7 +115,7 @@ err:
 }
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
-int nrf70_scan_start(struct nrf70_scan_params *params,
+int nrf70_bm_scan_start(struct nrf70_scan_params *params,
 					 nrf70_scan_result_cb_t cb)
 {
 	// Start scanning for WiFi networks
@@ -301,7 +301,7 @@ bool nrf70_scan_done(void)
 }
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
-int nrf70_deinit(void)
+int nrf70_bm_deinit(void)
 {
 	int
 
@@ -326,7 +326,7 @@ err:
 }
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
-int nrf_wifi_util_dump_rpu_stats(const char *type)
+int nrf70_bm_dump_stats(const char *type)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct rpu_op_stats stats;
