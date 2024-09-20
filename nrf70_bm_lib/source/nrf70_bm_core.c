@@ -63,7 +63,7 @@ struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
 INCBIN(_bin, nrf70_fw, STR(CONFIG_NRF_WIFI_FW_BIN));
 
 
-void nrf70_mac_txt(const unsigned char *mac, char *mac_str, size_t size)
+void nrf70_bm_mac_txt(const unsigned char *mac, char *mac_str, size_t size)
 {
 	if (size < 18) {
 		// Handle error: buffer too small
@@ -485,7 +485,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif)
 	}
 #endif
 
-	nrf70_mac_txt(vif->mac_addr, mac_addr_str, sizeof(mac_addr_str));
+	nrf70_bm_mac_txt(vif->mac_addr, mac_addr_str, sizeof(mac_addr_str));
 	if (!nrf_wifi_utils_is_mac_addr_valid(fmac_priv->opriv,
 	    vif->mac_addr)) {
 		NRF70_LOG_ERR("%s: Invalid MAC address: %s",

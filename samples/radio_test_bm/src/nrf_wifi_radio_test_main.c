@@ -31,7 +31,7 @@ int main(void)
 #endif
 
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_init());
+	CHECK_RET(nrf70_bm_init());
 
 	printf("Initialized WiFi module, ready for radio test\n");
 
