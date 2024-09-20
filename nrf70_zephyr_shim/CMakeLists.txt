@@ -20,15 +20,18 @@ if (CONFIG_NRF70_ZEPHYR_SHIM)
     ${NRF_WIFI_DIR}/hw_if/hal/inc/fw/
   )
 
-  zephyr_library_sources(source/shim.c)
+
+  zephyr_library_sources(source/platform/rpu_hw_if.c)
+
   zephyr_library_sources_ifdef(CONFIG_NRF700X_ON_QSPI
-    source/qspi_if.c
+    source/bus/qspi_if.c
   )
   zephyr_library_sources_ifdef(CONFIG_NRF700X_ON_SPI
-    source/spi_if.c
+    source/bus/spi_if.c
   )
-  zephyr_library_sources(source/rpu_hw_if.c)
-  zephyr_library_sources(source/device.c)
-  zephyr_library_sources(source/work.c)
-  zephyr_library_sources(source/timer.c)
+  zephyr_library_sources(source/bus/device.c)
+
+  zephyr_library_sources(source/os/shim.c)
+  zephyr_library_sources(source/os/work.c)
+  zephyr_library_sources(source/os/timer.c)
 endif()
