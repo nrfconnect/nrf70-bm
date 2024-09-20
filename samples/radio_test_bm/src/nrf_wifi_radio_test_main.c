@@ -26,6 +26,10 @@ int main(void)
 {
 	int ret = 0;
 
+#ifndef CONFIG_ZEPHYR_SHELL
+#error "This sample application requires shell support, please enable CONFIG_ZEPHYR_SHELL"
+#endif
+
 	// Initialize the WiFi module
 	CHECK_RET(nrf70_init());
 
