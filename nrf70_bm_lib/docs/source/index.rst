@@ -11,6 +11,7 @@ Welcome to nRF70 bare metal library's documentation!
    :caption: Contents:
 
    nrf70_bm_lib
+   nrf70_bm_porting_guide
    nrf70_bm_api
 
 
