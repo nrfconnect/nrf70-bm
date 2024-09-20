@@ -12,12 +12,63 @@
 #include <zephyr/kernel.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <zephyr/shell/shell.h>
 #include <zephyr/init.h>
 #include <ctype.h>
 #include <nrf70_bm_core.h>
 #include <host_rpu_sys_if.h>
 #include <fmac_structs.h>
+
+#define NRF_WIFI_RADIO_TEST_INIT_TIMEOUT_MS 5000
+#ifdef CONFIG_ZEPHYR_SHELL
+#include <shell/shell.h>
+#include <shell/shell_uart.h>
+
+extern struct shell *shell_global;
+
+#define RT_SHELL_PRINTF_INFO(fmt, ...)                                         \
+	do {                                                                         \
+		if (shell_global) {                                                        \
+			shell_fprintf(shell_global, SHELL_INFO, fmt, ##__VA_ARGS__);             \
+		} else {                                                                   \
+			printf(fmt, ##__VA_ARGS__);                                              \
+		}                                                                          \
+	} while (0)
+
+#define RT_SHELL_PRINTF_ERROR(fmt, ...)                                        \
+	do {                                                                         \
+		if (shell_global) {                                                        \
+			shell_fprintf(shell_global, SHELL_ERROR, fmt, ##__VA_ARGS__);            \
+		} else {                                                                   \
+			printf(fmt, ##__VA_ARGS__);                                              \
+		}                                                                          \
+	} while (0)
+
+#define RT_SHELL_PRINTF_WARNING(fmt, ...)                                      \
+	do {                                                                         \
+		if (shell_global) {                                                        \
+			shell_fprintf(shell_global, SHELL_WARNING, fmt, ##__VA_ARGS__);          \
+		} else {                                                                   \
+			printf(fmt, ##__VA_ARGS__);                                              \
+		}                                                                          \
+	} while (0)
+
+#define DEFINE_CMD_HANDLER(name)                                               \
+  static int name##_sh(const struct shell *sh, size_t argc, const char *argv[]) {           \
+    shell_global = (struct shell *)sh;                                         \
+    return name(argc, argv);                                                   \
+  }
+
+#define RTSH(fn) fn##_sh
+
+#else
+#define RT_SHELL_PRINTF_INFO(fmt, ...) printf(fmt, ##__VA_ARGS__)
+
+#define RT_SHELL_PRINTF_ERROR(fmt, ...) printf(fmt, ##__VA_ARGS__)
+
+#define RT_SHELL_PRINTF_WARNING(fmt, ...) printf(fmt, ##__VA_ARGS__)
+
+#define DEFINE_CMD_HANDLER(name)
+#endif
 
 struct nrf_wifi_ctx_zep_rt {
 	struct nrf_wifi_fmac_priv *fmac_priv;
