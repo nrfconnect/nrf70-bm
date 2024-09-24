@@ -211,6 +211,7 @@ struct nwb {
 	bool chksum_done;
 };
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 static void *zep_shim_nbuf_alloc(unsigned int size)
 {
 	struct nwb *nwb;
@@ -440,6 +441,7 @@ out:
 	return pkt;
 }
 #endif /* CONFIG_NRF700X_RAW_DATA_RX || CONFIG_NRF700X_PROMISC_DATA_RX */
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
 static void *zep_shim_llist_node_alloc(void)
 {
@@ -921,7 +923,7 @@ static const struct nrf_wifi_osal_ops nrf_wifi_os_zep_ops = {
 	.llist_get_node_nxt = zep_shim_llist_get_node_nxt,
 	.llist_del_node = zep_shim_llist_del_node,
 	.llist_len = zep_shim_llist_len,
-
+#ifndef CONFIG_NRF70_RADIO_TEST
 	.nbuf_alloc = zep_shim_nbuf_alloc,
 	.nbuf_free = zep_shim_nbuf_free,
 	.nbuf_headroom_res = zep_shim_nbuf_headroom_res,
@@ -934,7 +936,7 @@ static const struct nrf_wifi_osal_ops nrf_wifi_os_zep_ops = {
 	.nbuf_get_priority = zep_shim_nbuf_get_priority,
 	.nbuf_get_chksum_done = zep_shim_nbuf_get_chksum_done,
 	.nbuf_set_chksum_done = zep_shim_nbuf_set_chksum_done,
-
+#endif /* CONFIG_NRF70_RADIO_TEST */
 	.tasklet_alloc = zep_shim_work_alloc,
 	.tasklet_free = zep_shim_work_free,
 	.tasklet_init = zep_shim_work_init,
