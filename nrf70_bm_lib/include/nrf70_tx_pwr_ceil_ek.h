@@ -6,10 +6,19 @@
  */
 
 /** @file
- * @brief nRF70 EK TX power ceiling configuration.
+ * @brief nRF7002 EK TX power ceiling configuration.
  */
 
-/* Taken from existing DTS in NCS */
+/*
+ * The configuration applies to the nRF7002 EK shield targets, as well as
+ * to shield targets for nRF7001 and nRF7000 IC variants emulated on the
+ * nRF7002 EK.
+ */
+
+/* The following macros are normally auto-generated from DeviceTree
+ * when building the nRF70 driver in a Zephyr environment. They are
+ * copied here as standard preprocessor directives for ease of porting.
+ */
 #define MAX_PWR_2G_DSSS 0x54
 #define MAX_PWR_2G_MCS0 0x40
 #define MAX_PWR_2G_MCS7 0x40
