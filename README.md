@@ -108,6 +108,8 @@ Documentation
 The documentation for the nRF70 BM driver is available in the `nrf70_bm_lib/docs` directory.
 To build the documentation in a Linux environment, follow the below steps:
 
+> **Note:** Currently, only Linux platforms are supported.
+
 1. **Install python requirements:**
 
     Install the required python packages using `pip`:
