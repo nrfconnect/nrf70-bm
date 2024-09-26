@@ -235,12 +235,16 @@ struct nrf70_scan_result {
 };
 
 /** @brief Callback function to be called when a scan result is available.
- * 
+ *
  * @param[in] entry Scan result entry. NULL if scan is done.
  */
 typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
 
 /**@brief Initialize the WiFi module.
+ *
+ * This function initializes the nRF70 device and prepares it for operation.
+ * This also includes powering up the device and setting up the necessary
+ * configurations including the download of the firmware patch for nRF70 device.
  *
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
@@ -249,10 +253,17 @@ int nrf70_bm_init(void);
 
 #if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Start scanning for WiFi networks.
- * 
+ *
+ * If all the bands and channels as specified in the scan parameters are scanned, the
+ * scan will be considered complete and the callback function will be called with
+ * each scan result and finally with a NULL entry to indicate that the scan is done.
+ *
+ * Once the scan is complete, after a timeout the nRF70 device will automatically
+ * switch to sleep state.
+ *
  * @param[in] scan_params Scan parameters.
  * @param[in] cb Callback function to be called when a scan result is available.
- * 
+ *
  * @retval 0 If the operation was successful.
  * @retval -EINVAL If the scan parameters are invalid.
  * @retval -EBUSY If the scan is already in progress.
@@ -264,6 +275,11 @@ int nrf70_bm_scan_start(struct nrf70_scan_params *scan_params,
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
 /**@brief Clean up the WiFi module.
+ *
+ * This function de-initializes the nRF70 device, free up resources and powers it down.
+ * Any further operations on the device will require re-initialization.
+ *
+ * @retval 0 If the operation was successful.
  */
 int nrf70_bm_deinit(void);
 
@@ -277,6 +293,8 @@ void nrf70_bm_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
 
 #if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Get the nRF70 statistics.
+ *
+ * This function retrieves the statistics of the nRF70 device for UMAC, LMAc and PHY.
  *
  * @param[in] type Type of statistics to get.
  *
