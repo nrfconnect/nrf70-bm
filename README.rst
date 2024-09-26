@@ -2,11 +2,11 @@
 nRF70 BM Driver README
 =========================
 
-This document provides instructions on how to set up and use the nRF70 BM driver with `west` for nRF boards or `git submodule` for customer boards.
-
-
 Setup Instructions
 ==================
+
+This section provides instructions on how to set up and use the nRF70 BM driver with `west` for nRF boards or `git submodule` for customer boards.
+
 
 Using `west` for nRF Boards
 ---------------------------
@@ -133,3 +133,16 @@ To build the documentation in a Linux environment, follow the below steps:
     The generated HTML files will be available in `nrf70_bm_lib/docs/build/html`.
 
     Open the `index.html` file in a browser to view the documentation.
+
+
+Example code
+============
+
+The repository includes two sample applications for testing and evaluation of the nRF70 Bare Metal library:
+
+1. `BM radio test` sample to perform basic RF testing of the nRF70 Series device, as well as
+    Factory Information Configuration Registers (FICR) programming.
+
+2. `BM scan` sample to test Wi-Fi SSID scanning with the nRF70 Series devices.
+
+Both samples can be found under the ``samples/`` directory. The samples can be built using `west`, as explained above.
