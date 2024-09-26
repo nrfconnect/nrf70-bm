@@ -11,14 +11,27 @@ Setup Instructions
 Using `west` for nRF Boards
 ---------------------------
 
-For applications integrating the nRF70 Series BM driver it is recommended to use `west` for building and programming  when using official Nordic development boards.
+For applications integrating the nRF70 Series BM driver it is recommended to use `west` and the nRF Connect SDK Toolchain,
+for building and programming, when testing and evaluating the BM driver using official Nordic development boards.
 
-1. **Install West:**
+1. **Toolchain and environment setup:**
+
+    Install the nRF Command Line tools (for programming and debugging applications on Nordic development boards)
+    downloading them from https://www.nordicsemi.com/Products/Development-tools/nrf-command-line-tools.
+
+    Follow the instructions on the official nRF Connect SDK documentation on how to install the required toolchain.
+    https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/installation/install_ncs.html
+
+
+    When using the command line and nRF Util method, `west` and all the required tools will be installed. Alternatively,
+    `west` can be installed as described in the following step.
+
+2. **Install West:**
 
     Follow the instructions on the official Zephyr Project documentation to install `west`:
     https://docs.zephyrproject.org/latest/guides/west/install.html
 
-2. **Clone the Repository:**
+3. **Clone the Repository:**
 
     Clone the main repository using `west`:
 
@@ -28,7 +41,7 @@ For applications integrating the nRF70 Series BM driver it is recommended to use
     west update
     ```
 
-3. **Build the Project:**
+4. **Build the Project:**
 
     Use `west` to build the project for your specific board:
 
@@ -36,7 +49,7 @@ For applications integrating the nRF70 Series BM driver it is recommended to use
     west build -b your_board_name
     ```
 
-4. **Flash the Board:**
+5. **Flash the Board:**
 
     Flash the firmware onto your nRF board:
 
@@ -93,7 +106,7 @@ Documentation
 =============
 
 The documentation for the nRF70 BM driver is available in the `nrf70_bm_lib/docs` directory.
-To build the documentation, follow the below steps:
+To build the documentation in a Linux environment, follow the below steps:
 
 1. **Install python requirements:**
 
