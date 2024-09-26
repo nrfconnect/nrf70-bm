@@ -76,3 +76,15 @@ The reference implementation of the BM Driver for the Zephyr RTOS uses build-tim
     - Kconfig: Used to define the configuration options for the nRF70 Series driver
 
         - Zephyr's build system generates autoconf.h based on the Kconfig options, this can be used as a basis for the third-party platform.
+
+OS agnostic driver layer
+************************
+
+The BM library uses the OS-agnostic nRF70 Wi-Fi driver layer to interact with the nRF70 Series device.
+This layer is pulled in as a submodule from the nRF Connect SDK nrfxlib repository using a custom branch.
+
+For more information, visit the `nRF Connect SDK nrfxlib repository <https://github.com/nrfconnect/sdk-nrfxlib>`_.
+
+.. note ::
+
+   The git submodule pulls in the entire repo, but only `nrf_wifi` directory is required for the BM driver.
