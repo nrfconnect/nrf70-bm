@@ -13,3 +13,9 @@ manifest:
       repo-path: sdk-nrf
       revision: v2.7.0
       import: true
+
+    # TODO: Once west supports sparse checkout, we should use it here.
+    - name: nrfxlib
+      remote: ncs
+      repo-path: sdk-nrfxlib
+      revision: pull/1414/head
