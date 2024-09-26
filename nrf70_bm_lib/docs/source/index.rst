@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to nRF70 bare metal library's documentation!
-====================================================
+Welcome to the nRF70 Bare Metal library documentation!
+======================================================
 
 .. toctree::
    :maxdepth: 2
