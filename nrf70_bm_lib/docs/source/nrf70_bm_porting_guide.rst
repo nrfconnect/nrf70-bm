@@ -67,7 +67,7 @@ The reference implementation of the BM Driver for the Zephyr RTOS uses build-tim
         - bus_qspi_dev_add()/bus_qspi_dev_rem()
         - gpio_pin_configure_dt()
 
-* *Build time tools*: The reference implementation uses the following build-time tools:
+* *Build time tools*: The reference implementation uses the following build-time tools, see also `Zephyr build auto-generated files` section below.
 
     - DTS: Used to define the GPIO configuration for the nRF70 Series on the host platform
 
@@ -88,3 +88,14 @@ For more information, visit the `nRF Connect SDK nrfxlib repository <https://git
 .. note ::
 
    The git submodule pulls in the entire repo, but only `nrf_wifi` directory is required for the BM driver.
+
+Zephyr build auto-generated files
+*********************************
+
+The Zephyr build system generates the following auto-generated files that are used by the nRF70 Series BM driver,
+the files are located in the build directory of the Zephyr build system, typically in the ``build/zephyr/`` directory.
+
+- ``include/generated/autoconf.h``: Contains the configuration options defined in Kconfig
+- ``include/generated/devicetree_generated.h``: Contains the Bus, GPIO configuration defined in the DTS file
+
+These can be used as a reference for the third-party platform to define the configuration options and hardware-specific configuration.
