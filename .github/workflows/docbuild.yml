@@ -1,7 +1,7 @@
 name: Documentation Build
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
     branches:
       - main
@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout sources
         uses: nrfconnect/action-checkout-west-update@main
+        with:
+          path: nrf70_bm_ws/nrf70-bm
 
       - name: cache-pip
         uses: actions/cache@v4
@@ -30,34 +32,34 @@ jobs:
           key: ${{ runner.os }}-doc-pip
 
       - name: Install packages
+        working-directory: nrf70_bm_ws
         run: |
           sudo apt update
           sudo apt-get install -y ninja-build mscgen plantuml
           sudo snap install yq
-          DOXYGEN_VERSION=$(yq ".doxygen.version" ./ncs/nrf70-bm-driver/scripts/tools-versions-linux.yml)
+          DOXYGEN_VERSION=$(yq ".doxygen.version" ./nrf/scripts/tools-versions-linux.yml)
           wget --no-verbose "https://github.com/doxygen/doxygen/releases/download/Release_${DOXYGEN_VERSION//./_}/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz"
           tar xf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
           echo "${PWD}/doxygen-${DOXYGEN_VERSION}/bin" >> $GITHUB_PATH
 
       - name: Install Python dependencies
-        working-directory: ncs
+        working-directory: nrf70_bm_ws
         run: |
           sudo pip3 install -U setuptools wheel pip
           pip3 install -r nrf/doc/requirements.txt
 
       - name: West zephyr-export
-        working-directory: ncs
+        working-directory: nrf70_bm_ws
         run: |
           west zephyr-export
 
       - name: Build documentation
-        working-directory: ncs/nrf70-bm-driver
-        run: |
-          ./build_docs.sh
+        working-directory: nrf70_bm_ws/nrf70-bm
+        run: ./build-docs.sh
 
       - name: Prepare legacy upload
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'external') || contains(github.event.pull_request.labels.*.name, 'CI-trusted-author') }}
-        working-directory: ncs/nrf70-bm-driver
+        working-directory: nrf70_bm_ws/nrf70-bm/nrf70_bm_lib
         run: |
           MONITOR="monitor_${{ github.run_id }}.txt"
 
@@ -86,6 +88,6 @@ jobs:
         with:
           name: docs
           path: |
-            ncs/nrf70-bm-driver/*.zip
-            ncs/nrf70-bm-driver/monitor*.txt
-            ncs/nrf70-bm-driver/pr.txt
+            nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/*.zip
+            nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/monitor*.txt
+            nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/pr.txt
