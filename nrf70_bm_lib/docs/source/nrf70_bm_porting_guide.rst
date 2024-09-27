@@ -89,6 +89,19 @@ For more information, visit the `nRF Connect SDK nrfxlib repository <https://git
 
    The git submodule pulls in the entire repo, but only `nrf_wifi` directory is required for the BM driver.
 
+nRF70 OS agnostic layers API documentation
+==========================================
+
+The nRF70 Series OS agnostic layers are documented along with the APIs.
+The below modules are part of the nRF70 Series OS agnostic layer:
+
+
+.. toctree::
+  :maxdepth: 1
+
+  nrf70_ll_doc
+
+
 Zephyr build auto-generated files
 *********************************
 

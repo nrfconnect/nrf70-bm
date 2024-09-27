@@ -8,7 +8,7 @@
 
 project = 'nRF70 bare metal library'
 copyright = "2024, Nordic Semiconductor"
-author = "Nordic Semiconductor"
+author = "Nordic Semiconductor ASA"
 release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
@@ -19,7 +19,8 @@ extensions = [
 ]
 
 breathe_projects = {
-    'nrf70_bm_lib': '../xml'
+    'nrf70_bm_lib': '../xml',
+    'nrfxlib': '../xml'
 }
 breathe_default_project = 'nrf70_bm_lib'
 breathe_domain_by_extension = {"h": "c", "c": "c"}
@@ -28,7 +29,9 @@ breathe_separate_member_pages = True
 templates_path = ['_templates']
 exclude_patterns = []
 
-
+# Ensure the master doc is set correctly
+master_doc = 'index'
+source_suffix = '.rst'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
