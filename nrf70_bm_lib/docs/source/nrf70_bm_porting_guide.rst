@@ -99,7 +99,7 @@ The below modules are part of the nRF70 Series OS agnostic layer:
 .. toctree::
   :maxdepth: 1
 
-  nrf70_ll_doc
+  nrf70_osal_doc
 
 
 Zephyr build auto-generated files
