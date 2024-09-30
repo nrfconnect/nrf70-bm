@@ -35,7 +35,11 @@ int main(void)
 
 	printf("Initialized WiFi module, ready for radio test\n");
 
-	nrf_wifi_radio_test_shell_init();
+	ret = nrf_wifi_radio_test_shell_init();
+	if (!ret) {
+		printf("Failed to initialize radio test: %d\n", ret);
+		goto cleanup;
+	}
 
 cleanup:
 	printf("Exiting WiFi radio test sample application with error: %d\n", ret);
