@@ -1819,18 +1819,6 @@ SHELL_CMD_REGISTER(wifi_radio_test, &nrf_wifi_radio_test_subcmds,
 int nrf_wifi_radio_test_shell_init(void)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	unsigned int timeout = 0;
-
-	while (!ctx->rpu_ctx && timeout < NRF_WIFI_RADIO_TEST_INIT_TIMEOUT_MS) {
-		k_sleep(K_MSEC(100));
-		timeout += 100;
-	}
-
-	if (!ctx->rpu_ctx) {
-		printf("nRF Wi-Fi radio test shell init timedout waiting for driver: %d\n",
-		       NRF_WIFI_RADIO_TEST_INIT_TIMEOUT_MS);
-		return -ENOEXEC;
-	}
 
 	status = nrf_wifi_radio_test_conf_init(&ctx->conf_params);
 
@@ -1840,8 +1828,3 @@ int nrf_wifi_radio_test_shell_init(void)
 
 	return 0;
 }
-
-
-SYS_INIT(nrf_wifi_radio_test_shell_init,
-	 APPLICATION,
-	 CONFIG_APPLICATION_INIT_PRIORITY);
