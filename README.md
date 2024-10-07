@@ -42,10 +42,10 @@ for building and programming, when testing and evaluating the BM driver using of
 
 4. **Build the Project:**
 
-    Use `west` to build the project for your specific board:
+    Use `west` to build the project for your specific board and type i.e., `CONFIG_NRF700X_BOARD_TYPE_DK` (default) or `CONFIG_NRF700X_BOARD_TYPE_EK`
 
     ```sh
-    west build -b your_board_name
+    west build -b your_board_name -- -D<BOARD_TYPE>=y
     ```
 
 5. **Flash the Board:**
@@ -73,7 +73,7 @@ Using `git submodule` for third-party boards
     git submodule update --init --recursive
     ```
 
-2. Build and flashing instructions depend on the third-party board and the build system used.
+2. Build and flashing instructions depend on the third-party board and the build system used. Please use board type as `CONFIG_NRF700X_BOARD_TYPE_CUSTOM` and also add the TX power ceiling header file for the custom board at `nrf70_bm_lib/include`, see `nrf70_bm_lib/include/nrf70_tx_pwr_ceil_dk.h` for reference.
 
 
 Source directory Structure
