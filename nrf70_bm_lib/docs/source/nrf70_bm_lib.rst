@@ -105,3 +105,38 @@ The nRF70 Series BM library provides a single API to perform a Wi-Fi scan operat
 The scan operation is optimized to provide a wide range of scan configuration parameters.
 
 Please see `Optimizing scan operation <https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/protocols/wifi/scan_mode/scan_operation.html>`_ for more information.
+
+nRF70 Series device states
+##########################
+
+The power save state of the nRF70 Series device is described through a combination of the physical power state of the logic or circuits and the logical functional state as observed by 802.11 protocol operations.
+
+Power state
+***********
+
+The nRF70 Series device can be in one of the following power states:
+
+* **Active:** The device is **ON** constantly so that it can receive and transmit the data.
+* **Sleep:** The device is **OFF** to the majority of the blocks that cannot receive and transmit the data.
+  In this state, the device consumes low power (~15 µA).
+  Real-time Clock (RTC) domain, RF retention memory, and firmware retention memory are powered **ON** to retain the state information.
+* **Shutdown:** The device is completely powered **OFF**.
+  In this state, the device consumes very low power (~2 µA) and does not retain any state information (apart from the values in the OTP memory).
+  The device will only respond to a BUCKEN assertion to wake from the Shutdown state.
+
+.. note::
+
+    To allow the nRF70 Series device enter the **Sleep** state when applicable, the ``CONFIG_NRF_WIFI_LOW_POWER`` Kconfig option must be enabled.
+
+The nRF70 Series transition to and from the **Shutdown** state is automatically managed by the nRF Wi-Fi driver.
+When the **FMAC** is de-initialized, the nRF Wi-Fi driver puts the nRF70 Series device in Shutdown state.
+When the **FMAC** is initialized, the nRF Wi-Fi driver puts the nRF70 Series device in Active state.
+
+Functional state
+****************
+
+In terms of functionality, the nRF70 Series device can reside in the following states:
+
+* **Scanning:** The device is in the scanning state, it is **Active** and is scanning for the available networks.
+* **Idle:** The device automatically enters the **Sleep** state, once the scan session (on all selected bands and channels) is completed and after a certain period of inactivity.
+  The period of inactivity is fixed in the firmware and is not configurable, it is set to 500ms.
