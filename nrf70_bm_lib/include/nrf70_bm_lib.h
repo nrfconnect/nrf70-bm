@@ -144,7 +144,7 @@ struct nrf70_version {
 
 /** @brief Wi-Fi scanning types. */
 enum nrf70_scan_type {
-	/** Active scanning (default). */
+	/** Active scanning (default) - two probe requests are sent on each channel. */
 	NRF70_SCAN_TYPE_ACTIVE = 0,
 	/** Passive scanning. */
 	NRF70_SCAN_TYPE_PASSIVE,
