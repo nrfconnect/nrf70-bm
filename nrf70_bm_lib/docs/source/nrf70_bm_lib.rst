@@ -98,3 +98,10 @@ The library driver code execute in the following contexts:"
   .. note::
      In the reference implementation for Zephyr tasklet work is offloaded to Zephyr kernel workqueues.
 
+Optimizing scan operation
+#########################
+
+The nRF70 Series BM library provides a single API to perform a Wi-Fi scan operation.
+The scan operation is optimized to provide a wide range of scan configuration parameters.
+
+Please see `Optimizing scan operation <https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/protocols/wifi/scan_mode/scan_operation.html>`_ for more information.
