@@ -19,6 +19,10 @@ The reference implementation of the BM Driver for the Zephyr RTOS uses build-tim
     - Description
     - OS agnostic layer API
     - Reference Zephyr API
+  * - IRQ
+    - Used to manage the interrupts from the nRF70 Series device.
+    - nrf_wifi_osal_bus_qspi_dev_intr_reg()/nrf_wifi_osal_bus_qspi_dev_intr_unreg()
+    - gpio_add_callback()/gpio_remove_callback()
   * - Tasklet
     - Used to process offloaded tasks from the nRF70 ISR context  (typically events coming from the nRF70 Series device)
     - tasklet_schedule()
@@ -48,6 +52,10 @@ The reference implementation of the BM Driver for the Zephyr RTOS uses build-tim
 .. note ::
 
    The synchronization primitives used in the latest reference implementation have been updated to use Zephyr spinlocks instead of semaphores.
+
+.. note ::
+
+   The IRQ for nRF70 Series is configued as a GPIO pin, and is Edge triggered i.e., interrupt to be triggered on pin state change to logical level 1.
 
 * *Driver model*: The reference implementation uses the Zephyr driver model to manage the nRF70 Series device.
 
