@@ -178,11 +178,9 @@ struct nrf70_scan_params {
 	 *  Refer to ::nrf70_frequency_bands for bit position of each band.
 	 */
 	uint8_t bands;
-	/** Active scan dwell time (in ms) on a channel.
-	 */
+	/** Active scan dwell time (in ms) on a channel - default 50ms */
 	uint16_t dwell_time_active;
-	/** Passive scan dwell time (in ms) on a channel.
-	 */
+	/** Passive scan dwell time (in ms) on a channel - default 130ms */
 	uint16_t dwell_time_passive;
 	/** Array of SSID strings to scan.
 	 */
