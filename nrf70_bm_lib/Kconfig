@@ -42,7 +42,7 @@ config NRF_WIFI_SCAN_MAX_BSS_CNT
 	  Maximum number of scan results to return. 0 represents unlimited number of BSSes.
 
 config NRF70_FIXED_MAC_ADDRESS
-	string "WiFi Fixed MAC address in format XX:XX:XX:XX:XX:XX"
+	string "WiFi Fixed MAC address in format XXXXXXXXXXXX"
 	help
 	  This overrides the MAC address read from OTP. Strictly for testing purposes only.
 
