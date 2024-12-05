@@ -74,8 +74,14 @@ The key components of the Zephyr shim reference implementation are:
 * ``platform``: Contains the platform specific files, and has an RPU (Radio Processing Unit) abstraction layer that interacts with the nRF70 Series device,
   either through QSPI or SPI. The platform also uses Zephyr GPIO APIs to manage GPIO pins of the nRF70 Series.
 
+Design essentials
+#################
+
+The nRF70 BM library is designed to be portable to any platform and OS environment.
+The following design essentials are important to understand when porting the library to a third-party platform.
+
 MAC address configuration
-#########################
+*************************
 
 The nRF70 Series Wi-Fi driver offers various options for configuring the MAC address used by the Wi-Fi driver.
 The MAC address can be configured in the following ways:
@@ -89,8 +95,6 @@ The MAC address can be configured in the following ways:
   This option uses a Zephyr API in the reference implementation to generate a random MAC address.
   When porting to a third-party platform, the random MAC address generation can be implemented using a platform-specific pseudo-random number generator (PRNG).
 
-Design essentials
-#################
 
 nRF70 BM library threading model
 ********************************
@@ -113,7 +117,7 @@ The library driver code execute in the following contexts:"
      In the reference implementation for Zephyr tasklet work is offloaded to Zephyr kernel workqueues.
 
 Optimizing scan operation
-#########################
+*************************
 
 The nRF70 Series BM library provides a single API to perform a Wi-Fi scan operation.
 The scan operation is optimized to provide a wide range of scan configuration parameters.
@@ -121,12 +125,12 @@ The scan operation is optimized to provide a wide range of scan configuration pa
 Please see `Optimizing scan operation <https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/protocols/wifi/scan_mode/scan_operation.html>`_ for more information.
 
 nRF70 Series device states
-##########################
+**************************
 
 The power save state of the nRF70 Series device is described through a combination of the physical power state of the logic or circuits and the logical functional state as observed by 802.11 protocol operations.
 
 Power state
-***********
+===========
 
 The nRF70 Series device can be in one of the following power states:
 
@@ -147,7 +151,7 @@ When the **FMAC** is de-initialized, the nRF Wi-Fi driver puts the nRF70 Series 
 When the **FMAC** is initialized, the nRF Wi-Fi driver puts the nRF70 Series device in Active state.
 
 Functional state
-****************
+================
 
 In terms of functionality, the nRF70 Series device can reside in the following states:
 
