@@ -47,6 +47,11 @@ The reference implementation of the BM Driver for the Zephyr RTOS uses build-tim
     - Used to manage the timers for the nRF70 Series driver, esp. for low power mode.
     - timer_***
     - k_work_delayable_***
+  * - Pseudo-Random Number Generator (PRNG)
+    - Used to generate random numbers for the nRF70 Series random MAC address generation,
+      (if random MAC address generation support is enabled).
+    - NA
+    - sys_rand8_get()
 
 
 .. note ::

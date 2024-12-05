@@ -48,8 +48,8 @@ config NRF70_FIXED_MAC_ADDRESS
 
 choice
 	prompt "Wi-Fi MAC address type"
-	default NRF70_OTP_MAC_ADDRESS if NRF70_FIXED_MAC_ADDRESS = ""
 	default NRF70_FIXED_MAC_ADDRESS_ENABLED if NRF70_FIXED_MAC_ADDRESS != ""
+	default NRF70_OTP_MAC_ADDRESS
 	help
 	  Select the type of MAC address to be used by the Wi-Fi driver
 
@@ -62,6 +62,13 @@ config NRF70_FIXED_MAC_ADDRESS_ENABLED
 	bool "Enable fixed MAC address"
 	help
 	  Enable fixed MAC address
+
+config NRF70_RANDOM_MAC_ADDRESS
+	bool "Random MAC address generation at runtime"
+	select TEST_RANDOM_GENERATOR
+	help
+	  This option enables random MAC address generation at runtime.
+	  The random MAC address is generated using the libc srand() function.
 endchoice
 
 config NRF700X_LOG_VERBOSE

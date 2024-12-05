@@ -7,6 +7,10 @@
 /** @file
  * @brief nRF70 Bare Metal initialization.
  */
+#ifdef CONFIG_NRF70_RANDOM_MAC_ADDRESS
+#include <zephyr/random/random.h>
+#endif /* CONFIG_NRF70_RANDOM_MAC_ADDRESS */
+
 #include "nrf70_bm_core.h"
 #include "nrf70_bm_lib.h"
 
@@ -451,11 +455,28 @@ err:
 	return -1;
 }
 
+#ifdef CONFIG_NRF70_RANDOM_MAC_ADDRESS
+static void generate_random_mac_address(uint8_t *mac_addr)
+{
+	// For simplicty use Zephyr API to generate random number
+	for (int i = 0; i < 6; i++) {
+		mac_addr[i] = sys_rand8_get();
+	}
+
+	// Set the locally administered bit (bit 1 of the first byte)
+	mac_addr[0] |= 0x02;
+
+	// Clear the multicast bit (bit 0 of the first byte)
+	mac_addr[0] &= 0xFE;
+}
+#endif /* CONFIG_WIFI_RANDOM_MAC_ADDRESS */
 
 enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+#ifndef CONFIG_NRF70_RANDOM_MAC_ADDRESS
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+#endif /* CONFIG_NRF70_RANDOM_MAC_ADDRESS */
 	struct nrf_wifi_fmac_priv *fmac_priv = nrf70_bm_priv.fmac_priv;
 	unsigned char mac_addr_str[18];
 #ifdef CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED
@@ -474,6 +495,8 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif)
 	}
 
 	memcpy(vif->mac_addr, fixed_mac_addr, NR70_MAC_ADDR_LEN);
+#elif CONFIG_NRF70_RANDOM_MAC_ADDRESS
+	generate_random_mac_address(vif->mac_addr);
 #elif CONFIG_NRF70_OTP_MAC_ADDRESS
 	status = nrf_wifi_fmac_otp_mac_addr_get(rpu_ctx,
 											vif->vif_idx,
@@ -535,6 +558,10 @@ int nrf70_fmac_add_vif_sta(void)
 		NRF70_LOG_ERR("%s: Failed to set MAC address", __func__);
 		goto del_vif;
 	}
+
+	NRF70_LOG_INF("MAC address set to %02X:%02X:%02X:%02X:%02X:%02X",
+		vif->mac_addr[0], vif->mac_addr[1], vif->mac_addr[2],
+		vif->mac_addr[3], vif->mac_addr[4], vif->mac_addr[5]);
 
 	memset(&vif_info, 0, sizeof(vif_info));
 	vif_info.state = NRF_WIFI_FMAC_IF_OP_STATE_UP;
