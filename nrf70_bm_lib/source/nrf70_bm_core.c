@@ -638,13 +638,21 @@ int nrf70_fmac_deinit(void)
 	NRF70_LOG_DBG("Deinitializing FMAC module");
 
 #ifndef CONFIG_NRF70_RADIO_TEST
-	nrf_wifi_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-	nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-	nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
+		nrf_wifi_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+		nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	}
+	if (nrf70_bm_priv.fmac_priv) {
+		nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+	}
 #else
-	nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
-	nrf_wifi_fmac_dev_rem_rt(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-	nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
+	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
+		nrf_wifi_fmac_dev_deinit_rt(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+		nrf_wifi_fmac_dev_rem_rt(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	}
+	if (nrf70_bm_priv.fmac_priv) {
+		nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
+	}
 #endif /* CONFIG_NRF70_RADIO_TEST */
 
 	nrf70_bm_priv.fmac_priv = NULL;
