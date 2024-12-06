@@ -471,7 +471,8 @@ static void generate_random_mac_address(uint8_t *mac_addr)
 }
 #endif /* CONFIG_WIFI_RANDOM_MAC_ADDRESS */
 
-enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif)
+enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
+					   uint8_t *mac_addr)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 #ifdef CONFIG_NRF70_OTP_MAC_ADDRESS
@@ -482,8 +483,15 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif)
 #ifdef CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED
 	int ret;
 	char fixed_mac_addr[NR70_MAC_ADDR_LEN];
+#endif /* CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED */
 
+	/* Runtime takes precedence over any other method */
+	if (mac_addr) {
+		memcpy(vif->mac_addr, mac_addr, NR70_MAC_ADDR_LEN);
+		goto mac_addr_check;
+	}
 
+#ifdef CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED
 	if (strlen(CONFIG_NRF70_FIXED_MAC_ADDRESS) != 2 * NR70_MAC_ADDR_LEN) {
 		NRF70_LOG_ERR("Invalid fixed MAC address format: len = %d",
 			strlen(CONFIG_NRF70_FIXED_MAC_ADDRESS));
@@ -515,7 +523,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif)
 		goto err;
 	}
 #endif
-
+mac_addr_check:
 	nrf70_bm_mac_txt(vif->mac_addr, mac_addr_str, sizeof(mac_addr_str));
 	if (!nrf_wifi_utils_is_mac_addr_valid(fmac_priv->opriv,
 	    vif->mac_addr)) {
@@ -533,7 +541,7 @@ err:
 
 #ifndef CONFIG_NRF70_RADIO_TEST
 #define STA_VIF_NAME "wlan0"
-int nrf70_fmac_add_vif_sta(void)
+int nrf70_fmac_add_vif_sta(uint8_t *mac_addr)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_umac_add_vif_info add_vif_info;
@@ -555,7 +563,7 @@ int nrf70_fmac_add_vif_sta(void)
 		goto err;
 	}
 
-	status = nrf_wifi_get_mac_addr(vif);
+	status = nrf_wifi_get_mac_addr(vif, mac_addr);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("%s: Failed to get MAC address", __func__);
 		goto del_vif;

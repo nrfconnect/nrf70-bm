@@ -244,10 +244,12 @@ typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
  * This also includes powering up the device and setting up the necessary
  * configurations including the download of the firmware patch for nRF70 device.
  *
+ * @param[in] mac_addr MAC address of the device.
+ *
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
  */
-int nrf70_bm_init(void);
+int nrf70_bm_init(uint8_t *mac_addr);
 
 #if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Start scanning for WiFi networks.

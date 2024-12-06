@@ -88,7 +88,7 @@ static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands ba
 }
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
-int nrf70_bm_init(void)
+int nrf70_bm_init(uint8_t *mac_addr)
 {
 	int ret;
 
@@ -99,7 +99,7 @@ int nrf70_bm_init(void)
 		goto err;
 	}
 #ifndef CONFIG_NRF700X_RADIO_TEST
-	ret = nrf70_fmac_add_vif_sta();
+	ret = nrf70_fmac_add_vif_sta(mac_addr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to add STA VIF");
 		goto deinit;

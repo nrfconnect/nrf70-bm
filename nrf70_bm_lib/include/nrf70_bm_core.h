@@ -54,7 +54,7 @@ struct nrf70_wifi_drv_priv_bm {
 
 int nrf70_fmac_init(void);
 int nrf70_fmac_deinit(void);
-int nrf70_fmac_add_vif_sta(void);
+int nrf70_fmac_add_vif_sta(uint8_t *mac_addr);
 int nrf70_fmac_del_vif_sta(void);
 
 #endif /* NRF70_BM_INIT_H__ */

@@ -101,7 +101,7 @@ int main(void)
 	printf("WiFi scan sample application using nRF70 Bare Metal library\n");
 
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_bm_init());
+	CHECK_RET(nrf70_bm_init(NULL));
 
 	printf("Scanning for WiFi networks...\n");
 
