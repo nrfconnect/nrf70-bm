@@ -317,4 +317,10 @@ config NRF700X_BOARD_TYPE_CUSTOM
 	help
 	  Select this option if the nRF70 is mounted on a custom board.
 endchoice
+
+config NRF70_REG_DOMAIN
+	string "The ISO/IEC alpha2 country code for the country in which this device is currently operating. Default 00 (World regulatory)"
+	# 00 is used for World regulatory
+	default "00"
+
 endmenu
