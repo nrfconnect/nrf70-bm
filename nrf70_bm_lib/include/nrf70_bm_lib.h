@@ -62,6 +62,9 @@ extern "C" {
 #define NRF70_SCAN_CHAN_MAX_MANUAL 1
 #endif /* CONFIG_NRF70_SCAN_CHAN_MAX_MANUAL */
 
+/** @brief Maximum number of channels supported by the Wi-Fi chip - 2.4GHz + 5GHz. */
+#define NRF70_MAX_CHANNELS ( 14 + 30 )
+
 /** @brief IEEE 802.11 security types. */
 enum nrf70_security_type {
 	/** No security. */
@@ -238,6 +241,32 @@ struct nrf70_scan_result {
  */
 typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
 
+/** @brief Per-channel regulatory attributes */
+struct nrf70_reg_chan_info {
+	/** Center frequency in MHz */
+	unsigned short center_frequency;
+	/** Maximum transmission power (in dBm) */
+	unsigned short max_power:8;
+	/** Is channel supported or not */
+	unsigned short supported:1;
+	/** Passive transmissions only */
+	unsigned short passive_only:1;
+	/** Is a DFS channel */
+	unsigned short dfs:1;
+};
+
+/** @brief Regulatory information */
+struct nrf70_regulatory_info {
+	/** Country code - ISO/IEC 3166-1 alpha-2 */
+	char country_code[2];
+	/** Force - ignore 802.11d beacon hints (only used in SET) */
+	bool force;
+	/** Number of channels supported (only used in GET) */
+	unsigned int num_channels;
+	/** Channels information (only used in GET) */
+	struct nrf70_reg_chan_info *chan_info;
+};
+
 /**@brief Initialize the WiFi module.
  *
  * This function initializes the nRF70 device and prepares it for operation.
@@ -249,7 +278,7 @@ typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
  */
-int nrf70_bm_init(uint8_t *mac_addr);
+int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info);
 
 #if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Start scanning for WiFi networks.
@@ -272,6 +301,19 @@ int nrf70_bm_init(uint8_t *mac_addr);
  */
 int nrf70_bm_scan_start(struct nrf70_scan_params *scan_params,
 					 nrf70_scan_result_cb_t cb);
+
+/** @brief Get nRF70 regulatory information.
+ *
+ * This function retrieves the regulatory information of the nRF70 device.
+ * The regulatory information includes the country code, the number of channels
+ * supported and the channel information.
+ *
+ * @param[out] reg_info Regulatory information.
+ *
+ * @retval 0 If the operation was successful.
+ * @retval -1 If the operation failed. *
+ */
+int nrf70_bm_get_reg(struct nrf70_regulatory_info *reg_info);
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
 /**@brief Clean up the WiFi module.

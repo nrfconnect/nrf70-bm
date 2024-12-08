@@ -158,3 +158,30 @@ In terms of functionality, the nRF70 Series device can reside in the following s
 * **Scanning:** The device is in the scanning state, it is **Active** and is scanning for the available networks.
 * **Idle:** The device automatically enters the **Sleep** state, once the scan session (on all selected bands and channels) is completed and after a certain period of inactivity.
   The period of inactivity is fixed in the firmware and is not configurable, it is set to 500ms.
+
+Operating with regulatory support
+*********************************
+
+The nRF70 Series devices operate in the license exempt 2.4 GHz and 5 GHz radio frequency spectrum bands. However, in order to satisfy license exemption, the supported channels in each band need to adhere to regulatory operation rules.
+The regulatory rules vary based on the country.
+
+See `Regulatory domain <https://docs.nordicsemi.com/bundle/ncs-2.7.0/page/nrf/protocols/wifi/regulatory_support.html>`_ for more information, the configuration options section should be skipped and instead refer to the below section.
+
+
+Configuration options
+=====================
+
+You can configure the regulatory domain through build time or run time.
+
+Build time
+----------
+
+Use the ``CONFIG_NRF70_REG_DOMAIN`` Kconfig option to set the regulatory region.
+The regulatory region will take an ISO/IEC alpha-2 country code for the country in which the device is expected to operate.
+The ``IEEE 802.11d`` beacon's regulatory region hint (if present) will be given higher precedence over the Kconfig option.
+
+Run time
+--------
+
+You can also set the regulatory domain using an API call, the regulatory information can be passed using the ``nrf70_bm_init()`` API.
+There is also an API to get the current regulatory domain set in the device, ``nrf70_bm_get_reg()``.

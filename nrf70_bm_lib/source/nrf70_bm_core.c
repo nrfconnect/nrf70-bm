@@ -11,8 +11,8 @@
 #include <zephyr/random/random.h>
 #endif /* CONFIG_NRF70_RANDOM_MAC_ADDRESS */
 
-#include "nrf70_bm_core.h"
 #include "nrf70_bm_lib.h"
+#include "nrf70_bm_core.h"
 
 #include "util.h"
 #include "fmac_api.h"
@@ -109,7 +109,26 @@ static void reg_change_callbk_fn(void *vif_ctx,
 			  struct nrf_wifi_event_regulatory_change *reg_change_event,
 			  unsigned int event_len)
 {
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+
+	(void)vif_ctx;
+	(void)event_len;
+
 	NRF70_LOG_DBG("Regulatory change event received");
+
+	fmac_dev_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+
+	fmac_dev_ctx->reg_change = nrf_wifi_osal_mem_alloc(fmac_dev_ctx->fpriv->opriv,
+							   sizeof(struct nrf_wifi_event_regulatory_change));
+	if (!fmac_dev_ctx->reg_change) {
+		NRF70_LOG_ERR("%s: Failed to allocate memory for reg_change", __func__);
+		return;
+	}
+
+	memcpy(fmac_dev_ctx->reg_change,
+		   reg_change_event,
+		   sizeof(struct nrf_wifi_event_regulatory_change));
+	fmac_dev_ctx->reg_set_status = true;
 }
 
 static void nrf_wifi_event_proc_scan_start_zep(void *vif_ctx,
@@ -237,6 +256,39 @@ static void nrf_wifi_event_proc_disp_scan_res_zep(void *vif_ctx,
 }
 #endif /* CONFIG_NRF70_RADIO_TEST */
 
+void nrf_wifi_event_get_reg(void *vif_ctx,
+				struct nrf_wifi_reg *get_reg_event,
+				unsigned int event_len)
+{
+	struct nrf_wifi_fmac_dev_ctx *fmac_dev_ctx = NULL;
+
+	(void)vif_ctx;
+	(void)event_len;
+
+	NRF70_LOG_DBG("%s: alpha2 = %c%c", __func__,
+		   get_reg_event->nrf_wifi_alpha2[0],
+		   get_reg_event->nrf_wifi_alpha2[1]);
+
+	fmac_dev_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+
+	if (fmac_dev_ctx->alpha2_valid) {
+		NRF70_LOG_ERR("%s: Unsolicited regulatory get!", __func__);
+		return;
+	}
+
+	memcpy(&fmac_dev_ctx->alpha2,
+		   &get_reg_event->nrf_wifi_alpha2,
+		   sizeof(get_reg_event->nrf_wifi_alpha2));
+
+	fmac_dev_ctx->reg_chan_count = get_reg_event->num_channels;
+	memcpy(fmac_dev_ctx->reg_chan_info,
+	       &get_reg_event->chn_info,
+	       fmac_dev_ctx->reg_chan_count *
+		   sizeof(struct nrf_wifi_get_reg_chn_info));
+
+	fmac_dev_ctx->alpha2_valid = true;
+}
+
 static void configure_tx_pwr_settings(struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 				struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params)
 {
@@ -360,7 +412,7 @@ int nrf70_fmac_init(void)
 
 	/* Regulator related call back functions */
 	callbk_fns.reg_change_callbk_fn = reg_change_callbk_fn;
-	//callbk_fns.event_get_reg = nrf_wifi_event_get_reg_zep;
+	callbk_fns.event_get_reg = nrf_wifi_event_get_reg;
 
 	/* Scan related call back functions */
 	callbk_fns.scan_start_callbk_fn = nrf_wifi_event_proc_scan_start_zep;
@@ -639,6 +691,80 @@ int nrf70_fmac_del_vif_sta(void)
 err:
 	return -1;
 }
+
+int nrf70_fmac_get_reg(struct nrf70_regulatory_info *reg_info)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf_wifi_fmac_reg_info reg_info_fmac = { 0 };
+	struct nrf70_reg_chan_info *tmp_chan_info_out = NULL;
+	struct nrf_wifi_get_reg_chn_info *tmp_chan_info_in = NULL;
+	int chan_idx;
+
+	if (!rpu_ctx) {
+		NRF70_LOG_ERR("%s: RPU context is NULL", __func__);
+		goto err;
+	}
+
+	status = nrf_wifi_fmac_get_reg(rpu_ctx, &reg_info_fmac);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		NRF70_LOG_ERR("%s: %d Failed to get regulatory info", __func__, status);
+		goto err;
+	}
+
+	memcpy(reg_info->country_code, reg_info_fmac.alpha2, NRF_WIFI_COUNTRY_CODE_LEN);
+	reg_info->num_channels = reg_info_fmac.reg_chan_count;
+
+	if (!reg_info->chan_info) {
+		NRF70_LOG_ERR("%s: Channel info buffer is NULL", __func__);
+		goto err;
+	}
+
+	if (reg_info->num_channels > NRF70_MAX_CHANNELS) {
+		NRF70_LOG_ERR("%s: Number of channels exceeds maximum supported (%d)",
+			__func__, NRF70_MAX_CHANNELS);
+		goto err;
+	}
+
+	for (chan_idx = 0; chan_idx < reg_info_fmac.reg_chan_count; chan_idx++) {
+		tmp_chan_info_out = &(reg_info->chan_info[chan_idx]);
+		tmp_chan_info_in = &(reg_info_fmac.reg_chan_info[chan_idx]);
+		tmp_chan_info_out->center_frequency = tmp_chan_info_in->center_frequency;
+		tmp_chan_info_out->dfs = !!tmp_chan_info_in->dfs;
+		tmp_chan_info_out->max_power = tmp_chan_info_in->max_power;
+		tmp_chan_info_out->passive_only = !!tmp_chan_info_in->passive_channel;
+		tmp_chan_info_out->supported = !!tmp_chan_info_in->supported;
+	}
+	return 0;
+err:
+	return -1;
+}
+
+int nrf70_fmac_set_reg(struct nrf70_regulatory_info *reg_info)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf_wifi_fmac_reg_info reg_info_fmac = { 0 };
+
+	if (!rpu_ctx) {
+		NRF70_LOG_ERR("%s: RPU context is NULL", __func__);
+		goto err;
+	}
+
+	memcpy(reg_info_fmac.alpha2, reg_info->country_code, NRF_WIFI_COUNTRY_CODE_LEN);
+	reg_info_fmac.force = reg_info->force;
+
+	status = nrf_wifi_fmac_set_reg(rpu_ctx, &reg_info_fmac);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		NRF70_LOG_ERR("%s: Failed to set regulatory info", __func__);
+		goto err;
+	}
+
+	return 0;
+err:
+	return -1;
+}
+
 #endif /* CONFIG_NRF70_RADIO_TEST */
 
 int nrf70_fmac_deinit(void)

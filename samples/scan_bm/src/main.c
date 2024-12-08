@@ -96,12 +96,44 @@ static int prepare_scan_params(struct nrf70_scan_params *params)
 int main(void)
 {
 	struct nrf70_scan_params scan_params = { 0 };
+	struct nrf70_regulatory_info reg_info = { 0 };
 	int ret;
 
 	printf("WiFi scan sample application using nRF70 Bare Metal library\n");
 
+	memcpy(reg_info.country_code, "IN", 2);
+	reg_info.force = true;
+
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_bm_init(NULL));
+	CHECK_RET(nrf70_bm_init(NULL, &reg_info));
+
+	printf("Getting regulatory information...\n");
+	reg_info.chan_info = malloc(sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
+	if (!reg_info.chan_info) {
+		printf("Failed to allocate memory for regulatory info\n");
+		ret = -ENOMEM;
+		goto cleanup;
+	}
+
+	ret = nrf70_bm_get_reg(&reg_info);
+	if (ret) {
+		printf("Failed to get regulatory info: %d\n", ret);
+		goto cleanup;
+	}
+
+	// Dump the regulatory information
+	printf("Regulatory information:\n");
+	printf("Country code: %s\n", reg_info.country_code);
+	printf("Number of channels: %d\n", reg_info.num_channels);
+	for (int i = 0; i < reg_info.num_channels; i++) {
+		printf("Channel %d: center frequency %d MHz, max power %d dBm, "
+			   "passive only %d, supported %d, DFS %d\n",
+			   i, reg_info.chan_info[i].center_frequency,
+			   reg_info.chan_info[i].max_power,
+			   reg_info.chan_info[i].passive_only,
+			   reg_info.chan_info[i].supported,
+			   reg_info.chan_info[i].dfs);
+	}
 
 	printf("Scanning for WiFi networks...\n");
 
@@ -141,6 +173,7 @@ int main(void)
 	ret = 0;
 
 cleanup:
+	free(reg_info.chan_info);
 	printf("Exiting WiFi scan sample application with error: %d\n", ret);
 	return ret;
 }

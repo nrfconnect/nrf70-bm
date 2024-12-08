@@ -88,7 +88,7 @@ static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands ba
 }
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 
-int nrf70_bm_init(uint8_t *mac_addr)
+int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 {
 	int ret;
 
@@ -99,6 +99,14 @@ int nrf70_bm_init(uint8_t *mac_addr)
 		goto err;
 	}
 #ifndef CONFIG_NRF700X_RADIO_TEST
+	if (reg_info) {
+		ret = nrf70_fmac_set_reg(reg_info);
+		if (ret) {
+			NRF70_LOG_ERR("Failed to set regulatory info");
+			goto deinit;
+		}
+	}
+
 	ret = nrf70_fmac_add_vif_sta(mac_addr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to add STA VIF");
@@ -115,6 +123,11 @@ err:
 }
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
+int nrf70_bm_get_reg(struct nrf70_regulatory_info *reg_info)
+{
+	return nrf70_fmac_get_reg(reg_info);
+}
+
 int nrf70_bm_scan_start(struct nrf70_scan_params *params,
 					 nrf70_scan_result_cb_t cb)
 {
