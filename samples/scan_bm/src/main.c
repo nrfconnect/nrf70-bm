@@ -101,7 +101,7 @@ int main(void)
 
 	printf("WiFi scan sample application using nRF70 Bare Metal library\n");
 
-	memcpy(reg_info.country_code, "IN", 2);
+	memcpy(reg_info.country_code, CONFIG_NRF70_REG_DOMAIN, 2);
 	reg_info.force = true;
 
 	// Initialize the WiFi module
