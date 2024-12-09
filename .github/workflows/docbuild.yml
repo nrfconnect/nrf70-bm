@@ -64,19 +64,19 @@ jobs:
           MONITOR="monitor_${{ github.run_id }}.txt"
 
           # Create documentation upload files
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            ARCHIVE="nrf70-bm-docs-${{ github.event.number }}.zip"
-            echo "publish2 dev PR-${{ github.event.number }} ${ARCHIVE}" > "${MONITOR}"
-            echo "${{ github.event.number }}" > pr.txt
-          else
-            if [ -z "${VERSION}" ]; then
-              echo "Not a release or latest, skipping publish"
-              exit 0
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              ARCHIVE="nrf70-bm-docs-${{ github.event.number }}.zip"
+              echo "publish2 dev PR-${{ github.event.number }} ${ARCHIVE}" > "${MONITOR}"
+              echo "${{ github.event.number }}" > pr.txt
+            else
+              if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+                ARCHIVE="nrf70-bm-docs-main-$${{ github.sha }}.zip"
+                echo "publish2 main ${ARCHIVE}" > "${MONITOR}"
+              else
+                echo "Neither PR nor main branch, exiting"
+                exit 0
+              fi
             fi
-
-            ARCHIVE="nrf70-bm-docs-${VERSION}.zip"
-            echo "publish2 main ${VERSION} ${ARCHIVE}" > "${MONITOR}"
-          fi
 
           cd docs/build/html
           zip -rq "${ARCHIVE}" .
