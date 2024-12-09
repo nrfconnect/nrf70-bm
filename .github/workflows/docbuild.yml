@@ -1,4 +1,4 @@
-name: Documentation Build
+name: Documentation Build and reploy
 
 on:
   pull_request:
@@ -100,13 +100,13 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/doc/build/html
+          path: nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/docs/build/html
 
       - name: Upload artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          path: nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/doc/build/html
+          path: nrf70_bm_ws/nrf70-bm/nrf70_bm_lib/docs/build/html
 
   deploy:
     runs-on: ubuntu-latest
