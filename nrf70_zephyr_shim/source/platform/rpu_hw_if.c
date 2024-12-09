@@ -335,7 +335,20 @@ int rpu_wakeup(void)
 
 int rpu_sleep_status(void)
 {
-	return rpu_rdsr1();
+	int ret;
+
+	ret = rpu_rdsr1();
+	if (ret < 0) {
+		LOG_ERR("Error: RDSR1 failed");
+		/* Return 0 to indicate that RPU is sleeping
+		 * as we are not able to read the status.
+		 *
+		 * TODO: The caller chain needs to be modified to handle this case.
+		 */
+		return 0;
+	}
+
+	return ret;
 }
 
 void rpu_get_sleep_stats(uint32_t addr, uint32_t *buff, uint32_t wrd_len)
