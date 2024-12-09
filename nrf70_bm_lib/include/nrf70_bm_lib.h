@@ -274,6 +274,7 @@ struct nrf70_regulatory_info {
  * configurations including the download of the firmware patch for nRF70 device.
  *
  * @param[in] mac_addr MAC address of the device.
+ * @param[in] reg_info Regulatory information.
  *
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
