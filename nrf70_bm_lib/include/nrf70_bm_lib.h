@@ -302,6 +302,19 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info);
 int nrf70_bm_scan_start(struct nrf70_scan_params *scan_params,
 					 nrf70_scan_result_cb_t cb);
 
+/** @brief Set nRF70 regulatory information.
+ *
+ * This function sets the regulatory information of the nRF70 device.
+ * The regulatory information includes the country code, the number of channels
+ * supported and the channel information.
+ *
+ * @param[in] reg_info Regulatory information.
+ *
+ * @retval 0 If the operation was successful.
+ * @retval -1 If the operation failed.
+ */
+int nrf70_bm_set_reg(struct nrf70_regulatory_info *reg_info);
+
 /** @brief Get nRF70 regulatory information.
  *
  * This function retrieves the regulatory information of the nRF70 device.

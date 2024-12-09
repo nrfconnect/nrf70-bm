@@ -123,6 +123,11 @@ err:
 }
 
 #ifndef CONFIG_NRF700X_RADIO_TEST
+int nrf70_bm_set_reg(struct nrf70_regulatory_info *reg_info)
+{
+	return nrf70_fmac_set_reg(reg_info);
+}
+
 int nrf70_bm_get_reg(struct nrf70_regulatory_info *reg_info)
 {
 	return nrf70_fmac_get_reg(reg_info);
