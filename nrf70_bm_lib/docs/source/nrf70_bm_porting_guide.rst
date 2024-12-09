@@ -157,3 +157,64 @@ the files are located in the build directory of the Zephyr build system, typical
 - ``include/generated/devicetree_generated.h``: Contains the Bus, GPIO configuration defined in the DTS file
 
 These can be used as a reference for the third-party platform to define the configuration options and hardware-specific configuration.
+
+Zephyr build compiler options and linker flags
+**********************************************
+
+The nRF70 Series BM driver uses the following compiler options and linker flags that are specific to the Zephyr build system.
+The compiler used is ``Zephyr SDK`` which uses ``arm-zephyr-eabi-gcc``. For more information, visit the `Zephyr SDK documentation <https://docs.zephyrproject.org/latest/develop/toolchains/zephyr_sdk.html>`_.
+
+Compiler options
+================
+
+Below is an example of the compiler options used by the nRF70 Series BM driver from `compile_commands.json` in the ``build`` directory:
+
+.. code-block:: json
+  :linenos:
+
+  {
+    "directory": "/home/nrf/work/bm_scan/nrf70-bm.git/build",
+    "command": "/home/nrf/ncs/toolchains/e9dba88316/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-gcc \
+    -DCONFIG_NRF_WIFI_FW_BIN=/home/nrf/work/bm_scan/nrf70-bm.git/../nrfxlib/nrf_wifi/fw_bins/scan_only/nrf70.bin \
+    -DKERNEL -DK_HEAP_MEM_POOL_SIZE=30000 -DNRF5340_XXAA_APPLICATION -DNRF_SKIP_FICR_NS_COPY_TO_RAM \
+    -DPICOLIBC_LONG_LONG_PRINTF_SCANF -D__LINUX_ERRNO_EXTENSIONS__ -D__PROGRAM_START -D__ZEPHYR__=1 \
+    -I/home/nrf/work/bm_scan/nrf70-bm.git/nrf70_bm_lib/include -I/home/nrf/work/bm_scan/zephyr/include/zephyr \
+    -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/utils/inc -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/os_if/inc \
+    -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/bus_if/bus/qspi/inc -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/bus_if/bal/inc \
+    -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/fw_if/umac_if/inc -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/fw_load/mips/fw/inc \
+    -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/hw_if/hal/inc -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/hw_if/hal/inc/fw \
+    -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/fw_if/umac_if/inc/fw -I/home/nrf/work/bm_scan/nrfxlib/nrf_wifi/fw_if/umac_if/inc/default \
+    -I/home/nrf/work/bm_scan/zephyr/include -I/home/nrf/work/bm_scan/nrf70-bm.git/build/zephyr/include/generated \
+    -I/home/nrf/work/bm_scan/zephyr/soc/nordic -I/home/nrf/work/bm_scan/zephyr/soc/nordic/nrf53/. \
+    -I/home/nrf/work/bm_scan/zephyr/soc/nordic/common/. -I/home/nrf/work/bm_scan/nrf/include -I/home/nrf/work/bm_scan/nrf/tests/include \
+    -I/home/nrf/work/bm_scan/modules/hal/cmsis/CMSIS/Core/Include -I/home/nrf/work/bm_scan/zephyr/modules/cmsis/. \
+    -I/home/nrf/work/bm_scan/modules/hal/nordic/nrfx -I/home/nrf/work/bm_scan/modules/hal/nordic/nrfx/drivers/include \
+    -I/home/nrf/work/bm_scan/modules/hal/nordic/nrfx/mdk -I/home/nrf/work/bm_scan/zephyr/modules/hal_nordic/nrfx/. \
+    -isystem /home/nrf/work/bm_scan/zephyr/lib/libc/common/include -isystem /home/nrf/work/bm_scan/nrfxlib/crypto/nrf_cc312_platform/include \
+    -fno-strict-aliasing -Os -imacros /home/nrf/work/bm_scan/nrf70-bm.git/build/zephyr/include/generated/autoconf.h \
+    -fno-printf-return-value -fno-common -g -gdwarf-4 -fdiagnostics-color=always -mcpu=cortex-m33 -mthumb -mabi=aapcs -mfp16-format=ieee \
+    -mtp=soft --sysroot=/home/nrf/ncs/toolchains/e9dba88316/opt/zephyr-sdk/arm-zephyr-eabi/arm-zephyr-eabi \
+    -imacros /home/nrf/work/bm_scan/zephyr/include/zephyr/toolchain/zephyr_stdint.h -Wall -Wformat -Wformat-security -Wno-format-zero-length \
+    -Wdouble-promotion -Wno-pointer-sign -Wpointer-arith -Wexpansion-to-defined -Wno-unused-but-set-variable -Werror=implicit-int -fno-pic \
+    -fno-pie -fno-asynchronous-unwind-tables -ftls-model=local-exec -fno-reorder-functions --param=min-pagesize=0 -fno-defer-pop \
+    -fmacro-prefix-map=/home/nrf/work/bm_scan/nrf70-bm.git/samples/scan_bm=CMAKE_SOURCE_DIR -fmacro-prefix-map=/home/nrf/work/bm_scan/zephyr=ZEPHYR_BASE \
+    -fmacro-prefix-map=/home/nrf/work/bm_scan=WEST_TOPDIR -ffunction-sections -fdata-sections --specs=picolibc.specs -std=c99 \
+    -o modules/nrf70-bm.git/nrf70_bm_lib/CMakeFiles/nrf70-bm-lib.dir/source/nrf70_bm_lib.c.obj -c /home/nrf/work/bm_scan/nrf70-bm.git/nrf70_bm_lib/source/nrf70_bm_lib.c",
+    "file": "/home/nrf/work/bm_scan/nrf70-bm.git/nrf70_bm_lib/source/nrf70_bm_lib.c",
+    "output": "modules/nrf70-bm.git/nrf70_bm_lib/CMakeFiles/nrf70-bm-lib.dir/source/nrf70_bm_lib.c.obj"
+  }
+
+Linker flags
+============
+
+Below is an example of the linker flags used by the nRF70 Series BM driver from `build.ninja` and `CMakeFiles/rules.ninja` in the ``build`` directory:
+
+.. code-block:: none
+
+  LINK_FLAGS = -gdwarf-4
+  # Rule for linking C static library.
+
+  rule C_STATIC_LIBRARY_LINKER__nrf70-bm-lib_
+    command = $PRE_LINK && /usr/bin/cmake -E rm -f $TARGET_FILE && /home/nrf/ncs/toolchains/e9dba88316/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ar qc $TARGET_FILE $LINK_FLAGS $in && /home/nrf/ncs/toolchains/e9dba88316/opt/zephyr-sdk/arm-zephyr-eabi/bin/arm-zephyr-eabi-ranlib $TARGET_FILE && $POST_BUILD
+    description = Linking C static library $TARGET_FILE
+    restat = $RESTAT
