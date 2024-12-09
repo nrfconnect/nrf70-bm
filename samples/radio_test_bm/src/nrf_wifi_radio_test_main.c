@@ -31,17 +31,20 @@ int main(void)
 #endif
 
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_bm_init());
+	CHECK_RET(nrf70_bm_init(NULL, NULL));
 
 	printf("Initialized WiFi module, ready for radio test\n");
 
 	ret = nrf_wifi_radio_test_shell_init();
-	if (!ret) {
+	if (ret) {
 		printf("Failed to initialize radio test: %d\n", ret);
 		goto cleanup;
 	}
 
 cleanup:
-	printf("Exiting WiFi radio test sample application with error: %d\n", ret);
+	if (ret) {
+		nrf70_bm_deinit();
+		printf("Exiting WiFi radio test sample application with error: %d\n", ret);
+	}
 	return ret;
 }
