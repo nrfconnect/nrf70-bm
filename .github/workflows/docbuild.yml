@@ -58,7 +58,7 @@ jobs:
         run: ./build-docs.sh
 
       - name: Prepare legacy upload
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'external') || contains(github.event.pull_request.labels.*.name, 'CI-trusted-author') }}
+        if: ${{ github.ref == 'refs/heads/main' || !contains(github.event.pull_request.labels.*.name, 'external') || contains(github.event.pull_request.labels.*.name, 'CI-trusted-author') }}
         working-directory: nrf70_bm_ws/nrf70-bm/nrf70_bm_lib
         run: |
           MONITOR="monitor_${{ github.run_id }}.txt"
