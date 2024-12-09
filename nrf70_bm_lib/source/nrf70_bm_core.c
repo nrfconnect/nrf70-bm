@@ -529,7 +529,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 #ifdef CONFIG_NRF70_OTP_MAC_ADDRESS
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
-#endif /* CONFIG_NRF70_RANDOM_MAC_ADDRESS */
+#endif /* CONFIG_NRF70_OTP_MAC_ADDRESS */
 	struct nrf_wifi_fmac_priv *fmac_priv = nrf70_bm_priv.fmac_priv;
 	unsigned char mac_addr_str[13];
 #ifdef CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED
