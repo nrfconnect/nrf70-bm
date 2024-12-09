@@ -126,7 +126,7 @@ int main(void)
 	struct nrf70_scan_params scan_params = { 0 };
 	struct nrf70_regulatory_info reg_info = { 0 };
 	int ret;
-	int scan_count = 0;
+	int scan_count = 1;
 
 	printf("WiFi scan sample application using nRF70 Bare Metal library\n");
 
@@ -153,7 +153,7 @@ int main(void)
 	{
 		// Start scanning for WiFi networks
 		is_scan_done = false;
-		printf("Starting scan...\n");
+		printf("Starting %d scan...\n", scan_count);
 		CHECK_RET(nrf70_bm_scan_start(&scan_params, scan_result_cb));
 
 		// Wait for the scan to complete or timeout
@@ -175,8 +175,7 @@ int main(void)
 			printf("Scan complete\n");
 		}
 
-		scan_count++;
-		if (scan_count >= CONFIG_WIFI_SCAN_REG_DOMAIN_SWITCH_COUNT)
+		if (scan_count % CONFIG_WIFI_SCAN_REG_DOMAIN_SWITCH_COUNT == 0)
 		{
 			// Switch regulatory domain
 			const char *new_domain = (strncmp(reg_info.country_code, CONFIG_WIFI_SCAN_REG_DOMAIN, 2) == 0) ?
@@ -186,9 +185,9 @@ int main(void)
 			printf("Switching to regulatory domain: %s\n", reg_info.country_code);
 			CHECK_RET(nrf70_bm_set_reg(&reg_info));
 			CHECK_RET(dump_regulatory_info(&reg_info));
-			scan_count = 0;
 		}
 
+		scan_count++;
 		k_sleep(K_MSEC(CONFIG_WIFI_SCAN_INTERVAL_S * 1000));
 	}
 
