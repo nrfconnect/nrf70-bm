@@ -1,3 +1,6 @@
+![Documentation Build]
+(https://github.com/nrfconnect/nrf70-bm/actions/workflows/docbuild.yml/badge.svg?branch=main)
+
 nRF70 BM Driver README
 ======================
 
