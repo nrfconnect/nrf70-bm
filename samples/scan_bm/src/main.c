@@ -152,6 +152,7 @@ int main(void)
 	while (1)
 	{
 		// Start scanning for WiFi networks
+		is_scan_done = false;
 		printf("Starting scan...\n");
 		CHECK_RET(nrf70_bm_scan_start(&scan_params, scan_result_cb));
 
