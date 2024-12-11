@@ -50,7 +50,7 @@ The reference implementation of the BM Driver for the Zephyr RTOS uses build-tim
   * - Pseudo-Random Number Generator (PRNG)
     - Used to generate random numbers for the nRF70 Series random MAC address generation,
       (if random MAC address generation support is enabled).
-    - NA
+    - nrf_wifi_osal_rand8_get()
     - sys_rand8_get()
 
 

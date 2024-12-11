@@ -65,7 +65,6 @@ config NRF70_FIXED_MAC_ADDRESS_ENABLED
 
 config NRF70_RANDOM_MAC_ADDRESS
 	bool "Random MAC address generation at runtime"
-	select TEST_RANDOM_GENERATOR
 	help
 	  This option enables random MAC address generation at runtime.
 	  The random MAC address is generated using the libc srand() function.

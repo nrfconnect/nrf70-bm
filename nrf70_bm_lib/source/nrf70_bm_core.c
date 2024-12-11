@@ -7,10 +7,6 @@
 /** @file
  * @brief nRF70 Bare Metal initialization.
  */
-#ifdef CONFIG_NRF70_RANDOM_MAC_ADDRESS
-#include <zephyr/random/random.h>
-#endif /* CONFIG_NRF70_RANDOM_MAC_ADDRESS */
-
 #include "nrf70_bm_lib.h"
 #include "nrf70_bm_core.h"
 
@@ -508,11 +504,12 @@ err:
 }
 
 #ifdef CONFIG_NRF70_RANDOM_MAC_ADDRESS
-static void generate_random_mac_address(uint8_t *mac_addr)
+static void generate_random_mac_address(void *opriv,
+					uint8_t *mac_addr)
 {
 	// For simplicty use Zephyr API to generate random number
 	for (int i = 0; i < 6; i++) {
-		mac_addr[i] = sys_rand8_get();
+		mac_addr[i] = nrf_wifi_osal_rand8_get(opriv);
 	}
 
 	// Set the locally administered bit (bit 1 of the first byte)
@@ -564,7 +561,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
 
 	memcpy(vif->mac_addr, fixed_mac_addr, NR70_MAC_ADDR_LEN);
 #elif CONFIG_NRF70_RANDOM_MAC_ADDRESS
-	generate_random_mac_address(vif->mac_addr);
+	generate_random_mac_address(nrf70_bm_priv.fmac_priv->opriv, vif->mac_addr);
 #elif CONFIG_NRF70_OTP_MAC_ADDRESS
 	status = nrf_wifi_fmac_otp_mac_addr_get(rpu_ctx,
 											vif->vif_idx,

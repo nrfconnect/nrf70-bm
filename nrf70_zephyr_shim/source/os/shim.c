@@ -18,6 +18,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/__assert.h>
+#include <zephyr/random/random.h>
 
 #include "rpu_hw_if.h"
 #include "shim.h"
@@ -972,6 +973,7 @@ static const struct nrf_wifi_osal_ops nrf_wifi_os_zep_ops = {
 
 	.assert = zep_shim_assert,
 	.strlen = zep_shim_strlen,
+	.rand8_get = sys_rand8_get,
 };
 
 const struct nrf_wifi_osal_ops *get_os_ops(void)

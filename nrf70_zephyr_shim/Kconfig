@@ -10,6 +10,8 @@ DT_COMPAT_NORDIC_NRF700X_SPI := nordic,nrf700x-spi
 menuconfig NRF70_ZEPHYR_SHIM
   bool "Enable nRF70 Zephyr shim"
   default y if NRF70_BM_LIB
+  # For Random MAC address generation
+  select TEST_RANDOM_GENERATOR
   help
     Enable the nRF70 Zephyr shim.
 
