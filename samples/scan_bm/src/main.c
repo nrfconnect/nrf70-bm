@@ -90,6 +90,15 @@ static int prepare_scan_params(struct nrf70_scan_params *params)
 		}
 	}
 
+	params->dwell_time_passive = CONFIG_WIFI_SCAN_DWELL_TIME_PASSIVE;
+	params->dwell_time_active = CONFIG_WIFI_SCAN_DWELL_TIME_ACTIVE;
+
+	if (IS_ENABLED(CONFIG_WIFI_SCAN_TYPE_PASSIVE)) {
+		params->scan_type = NRF70_SCAN_TYPE_PASSIVE;
+	} else{
+		params->scan_type = NRF70_SCAN_TYPE_ACTIVE;
+	}
+
 	return 0;
 }
 
