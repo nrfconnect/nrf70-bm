@@ -7,7 +7,6 @@
 /** @file
  * @brief nRF70 Bare Metal initialization.
  */
-#include "nrf70_bm_lib.h"
 #include "nrf70_bm_core.h"
 
 #include "util.h"

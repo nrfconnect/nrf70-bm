@@ -17,7 +17,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-
+#include "nrf70_bm_lib.h"
 #include <fmac_api.h>
 
 extern struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
