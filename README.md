@@ -118,7 +118,7 @@ To build the documentation in a Linux environment, follow the below steps:
     ```sh
     pip install -r nrf70_bm_lib/docs/requirements.txt
     ```
-2. ** Install doxygen:**
+2. **Install doxygen:**
 
     Install doxygen using `apt` package manager (or any other package manager based on your OS):
 
