@@ -91,6 +91,9 @@ static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands ba
 int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 {
 	int ret;
+#ifndef CONFIG_NRF700X_RADIO_TEST
+	struct nrf70_regulatory_info reg_info_curr = { 0 };
+#endif /* CONFIG_NRF700X_RADIO_TEST */
 
 	// Initialize the WiFi module
 	ret = nrf70_fmac_init();
@@ -99,6 +102,31 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 		goto err;
 	}
 #ifndef CONFIG_NRF700X_RADIO_TEST
+	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
+	if (!reg_info_curr.chan_info) {
+		printf("Failed to allocate memory for regulatory info\n");
+		ret = -1;
+		goto deinit;
+	}
+
+	ret = nrf70_fmac_get_reg(&reg_info_curr);
+	if (ret) {
+		NRF70_LOG_ERR("Failed to get regulatory info");
+		goto deinit;
+	}
+
+	printf("Current Regulatory information: Country code: %s\n", reg_info_curr.country_code);
+	printf("Current Number of channels: %d\n", reg_info_curr.num_channels);
+	for (int i = 0; i < reg_info_curr.num_channels; i++) {
+		printf("Channel %d: center frequency %d MHz, max power %d dBm, "
+			   "passive only %d, supported %d, DFS %d\n",
+			   i, reg_info_curr.chan_info[i].center_frequency,
+			   reg_info_curr.chan_info[i].max_power,
+			   reg_info_curr.chan_info[i].passive_only,
+			   reg_info_curr.chan_info[i].supported,
+			   reg_info_curr.chan_info[i].dfs);
+	}
+
 	if (reg_info) {
 		ret = nrf70_fmac_set_reg(reg_info);
 		if (ret) {
@@ -116,6 +144,7 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 	return 0;
 #ifndef CONFIG_NRF700X_RADIO_TEST
 deinit:
+	free(reg_info_curr.chan_info);
 	nrf70_fmac_deinit();
 #endif /* CONFIG_NRF700X_RADIO_TEST */
 err:
