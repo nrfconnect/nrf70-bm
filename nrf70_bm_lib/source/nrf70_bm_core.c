@@ -154,7 +154,7 @@ static void nrf_wifi_event_proc_scan_done_zep(void *vif_ctx,
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
 	NRF70_LOG_DBG("Scan done event received");
 
-	status = nrf_wifi_fmac_scan_res_get(rpu_ctx,
+	status = nrf_wifi_sys_fmac_scan_res_get(rpu_ctx,
 					    vif->vif_idx,
 					    SCAN_DISPLAY);
 
@@ -432,19 +432,24 @@ int nrf70_fmac_init(void)
 
 #ifndef CONFIG_NRF70_RADIO_TEST
 	// Initialize the FMAC module
-	nrf70_bm_priv.fmac_priv = nrf_wifi_fmac_init(&data_config,
-												 rx_buf_pools,
-												 &callbk_fns);
+	nrf70_bm_priv.fmac_priv = nrf_wifi_sys_fmac_init(&data_config,
+							 rx_buf_pools,
+							 &callbk_fns);
 #else
-	nrf70_bm_priv.fmac_priv = nrf_wifi_fmac_init_rt();
+	nrf70_bm_priv.fmac_priv = nrf_wifi_rt_fmac_init();
 #endif /* CONFIG_NRF70_RADIO_TEST */
 	if (!nrf70_bm_priv.fmac_priv) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module\n");
 		goto err;
 	}
 
-	rpu_ctx = nrf_wifi_fmac_dev_add(nrf70_bm_priv.fmac_priv,
-									&nrf70_bm_priv.rpu_ctx_bm);
+#ifndef CONFIG_NRF70_RADIO_TEST
+	rpu_ctx = nrf_wifi_sys_fmac_dev_add(nrf70_bm_priv.fmac_priv,
+					   &nrf70_bm_priv.rpu_ctx_bm);
+#else
+	rpu_ctx = nrf_wifi_rt_fmac_dev_add(nrf70_bm_priv.fmac_priv,
+					   &nrf70_bm_priv.rpu_ctx_bm);
+#endif
 	if (!rpu_ctx) {
 		NRF70_LOG_ERR("Failed to add device\n");
 		goto deinit;
@@ -480,29 +485,29 @@ int nrf70_fmac_init(void)
 #endif
 
 #ifndef CONFIG_NRF70_RADIO_TEST
-	status = nrf_wifi_fmac_dev_init(rpu_ctx,
+	status = nrf_wifi_sys_fmac_dev_init(rpu_ctx,
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
-					sleep_type,
+					    sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
-					NRF_WIFI_DEF_PHY_CALIB,
-					op_band,
-					enable_bf,
-					&tx_pwr_ctrl_params,
-					&tx_pwr_ceil_params,
-					&board_params,
-					STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
+					    NRF_WIFI_DEF_PHY_CALIB,
+					    op_band,
+					    enable_bf,
+					    &tx_pwr_ctrl_params,
+					    &tx_pwr_ceil_params,
+					    &board_params,
+					    STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
 #else
-	status = nrf_wifi_fmac_dev_init_rt(rpu_ctx,
+	status = nrf_wifi_rt_fmac_dev_init(rpu_ctx,
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
-					sleep_type,
+					   sleep_type,
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
-					NRF_WIFI_DEF_PHY_CALIB,
-					op_band,
-					enable_bf,
-					&tx_pwr_ctrl_params,
-					&tx_pwr_ceil_params,
-					&board_params,
-					STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
+					   NRF_WIFI_DEF_PHY_CALIB,
+					   op_band,
+					   enable_bf,
+					   &tx_pwr_ctrl_params,
+					   &tx_pwr_ceil_params,
+					   &board_params,
+					   STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
 #endif /* CONFIG_NRF70_RADIO_TEST */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("Failed to initialize device\n");
@@ -619,7 +624,7 @@ int nrf70_fmac_add_vif_sta(uint8_t *mac_addr)
 
 	memcpy(add_vif_info.ifacename, STA_VIF_NAME, strlen(STA_VIF_NAME));
 
-	vif->vif_idx = nrf_wifi_fmac_add_vif(rpu_ctx, vif, &add_vif_info);
+	vif->vif_idx = nrf_wifi_sys_fmac_add_vif(rpu_ctx, vif, &add_vif_info);
 	if (vif->vif_idx >= MAX_NUM_VIFS) {
 		NRF70_LOG_ERR("%s: FMAC returned invalid interface index", __func__);
 		goto err;
@@ -631,7 +636,7 @@ int nrf70_fmac_add_vif_sta(uint8_t *mac_addr)
 		goto del_vif;
 	}
 
-	status = nrf_wifi_fmac_set_vif_macaddr(rpu_ctx, vif->vif_idx, vif->mac_addr);
+	status = nrf_wifi_sys_fmac_set_vif_macaddr(rpu_ctx, vif->vif_idx, vif->mac_addr);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("%s: Failed to set MAC address", __func__);
 		goto del_vif;
@@ -645,7 +650,7 @@ int nrf70_fmac_add_vif_sta(uint8_t *mac_addr)
 	vif_info.state = NRF_WIFI_FMAC_IF_OP_STATE_UP;
 	vif_info.if_index = vif->vif_idx;
 
-	status = nrf_wifi_fmac_chg_vif_state(rpu_ctx, vif->vif_idx, &vif_info);
+	status = nrf_wifi_sys_fmac_chg_vif_state(rpu_ctx, vif->vif_idx, &vif_info);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("%s: Failed to set interface state", __func__);
 		goto del_vif;
@@ -658,7 +663,7 @@ int nrf70_fmac_add_vif_sta(uint8_t *mac_addr)
 	return 0;
 
 del_vif:
-	status = nrf_wifi_fmac_del_vif(rpu_ctx, vif->vif_idx);
+	status = nrf_wifi_sys_fmac_del_vif(rpu_ctx, vif->vif_idx);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("%s: Failed to delete interface", __func__);
 	}
@@ -683,13 +688,13 @@ int nrf70_fmac_del_vif_sta(void)
 	vif_info.state = NRF_WIFI_FMAC_IF_OP_STATE_DOWN;
 	vif_info.if_index = vif->vif_idx;
 
-	status = nrf_wifi_fmac_chg_vif_state(rpu_ctx, vif->vif_idx, &vif_info);
+	status = nrf_wifi_sys_fmac_chg_vif_state(rpu_ctx, vif->vif_idx, &vif_info);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("%s: Failed to set interface state", __func__);
 		goto err;
 	}
 
-	status = nrf_wifi_fmac_del_vif(rpu_ctx, vif->vif_idx);
+	status = nrf_wifi_sys_fmac_del_vif(rpu_ctx, vif->vif_idx);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("%s: Failed to delete interface", __func__);
 		goto err;
@@ -783,21 +788,22 @@ int nrf70_fmac_deinit(void)
 
 #ifndef CONFIG_NRF70_RADIO_TEST
 	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
-		nrf_wifi_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-		nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-	}
-	if (nrf70_bm_priv.fmac_priv) {
-		nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+		nrf_wifi_sys_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
 	}
 #else
 	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
-		nrf_wifi_fmac_dev_deinit_rt(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-		nrf_wifi_fmac_dev_rem_rt(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-	}
-	if (nrf70_bm_priv.fmac_priv) {
-		nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
+		nrf_wifi_rt_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
 	}
 #endif /* CONFIG_NRF70_RADIO_TEST */
+
+	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
+		nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	}
+
+	if (nrf70_bm_priv.fmac_priv) {
+		nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+	}
+
 	nrf_wifi_osal_deinit();
 	nrf70_bm_priv.fmac_priv = NULL;
 	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = NULL;

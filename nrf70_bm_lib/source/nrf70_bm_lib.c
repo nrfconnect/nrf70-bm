@@ -102,12 +102,12 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 		goto err;
 	}
 
+#ifndef CONFIG_NRF70_RADIO_TEST
 	ret = nrf70_fmac_add_vif_sta(mac_addr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to add STA VIF");
 		goto deinit;
 	}
-#ifndef CONFIG_NRF70_RADIO_TEST
 	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
 	if (!reg_info_curr.chan_info) {
 		printf("Failed to allocate memory for regulatory info\n");
@@ -325,16 +325,16 @@ int nrf70_bm_scan_start(struct nrf70_scan_params *params,
 
 	vif->scan_res_cnt = 0;
 
-	status = nrf_wifi_fmac_scan(rpu_ctx,
-								vif->vif_idx,
-								(struct nrf_wifi_umac_scan_info *)&scan_info_overlay);
+	status = nrf_wifi_sys_fmac_scan(rpu_ctx,
+					vif->vif_idx,
+					(struct nrf_wifi_umac_scan_info *)&scan_info_overlay);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
-		NRF70_LOG_ERR("%s: nrf_wifi_fmac_scan failed", __func__);
+		NRF70_LOG_ERR("%s: nrf_wifi_sys_fmac_scan failed", __func__);
 		goto err;
 	}
 
 	NRF70_LOG_DBG("Scan started");
-	
+
 	return 0;
 err:
 	return ret;
@@ -376,7 +376,7 @@ err:
 int nrf70_bm_dump_stats(const char *type)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	struct rpu_op_stats stats;
+	struct rpu_sys_op_stats stats;
 	enum rpu_stats_type stats_type = RPU_STATS_TYPE_ALL;
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
 
@@ -393,8 +393,8 @@ int nrf70_bm_dump_stats(const char *type)
 		return -1;
 	}
 
-	memset(&stats, 0, sizeof(struct rpu_op_stats));
-	status = nrf_wifi_fmac_stats_get(rpu_ctx, 0, &stats);
+	memset(&stats, 0, sizeof(stats));
+	status = nrf_wifi_sys_fmac_stats_get(rpu_ctx, 0, &stats);
 
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("Failed to get stats\n");

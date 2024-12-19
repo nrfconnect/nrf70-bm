@@ -29,7 +29,7 @@ manifest:
     # nRF70 Wi-Fi OSAL library
     - name: nrf_wifi
       repo-path: nrf_wifi
-      revision: d5fd6f70f3f7875a6df5298b50301ff3f64a10f9
+      revision: 01359dffd9b6da4d162b4565fdd621ad94bd5d4e
       path: modules/lib/nrf_wifi
     # nRF70 Wi-Fi firmware blobs (without west blobs fetch)
     - name: nrfxlib
