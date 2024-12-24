@@ -14,9 +14,11 @@
 #include <stdlib.h>
 #include <zephyr/init.h>
 #include <ctype.h>
-#include <nrf70_bm_core.h>
 #include <host_rpu_sys_if.h>
+#include <phy_rf_params.h>
 #include <fmac_structs.h>
+
+#include <nrf70_bm_core.h>
 
 #define NRF_WIFI_RADIO_TEST_INIT_TIMEOUT_MS 5000
 #ifdef CONFIG_ZEPHYR_SHELL

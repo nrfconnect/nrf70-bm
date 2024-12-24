@@ -4,8 +4,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
-DT_COMPAT_NORDIC_NRF700X_QSPI := nordic,nrf700x-qspi
-DT_COMPAT_NORDIC_NRF700X_SPI := nordic,nrf700x-spi
+DT_COMPAT_NORDIC_NRF7002_QSPI := nordic,nrf7002-qspi
+DT_COMPAT_NORDIC_NRF7002_SPI := nordic,nrf7002-spi
+DT_COMPAT_NORDIC_NRF7001_QSPI := nordic,nrf7001-qspi
+DT_COMPAT_NORDIC_NRF7001_SPI := nordic,nrf7001-spi
+DT_COMPAT_NORDIC_NRF7000_QSPI := nordic,nrf7000-qspi
+DT_COMPAT_NORDIC_NRF7000_SPI := nordic,nrf7000-spi
 
 menuconfig NRF70_ZEPHYR_SHIM
   bool "Enable nRF70 Zephyr shim"
@@ -15,30 +19,47 @@ menuconfig NRF70_ZEPHYR_SHIM
   help
     Enable the nRF70 Zephyr shim.
 
+config WIFI_NRF7002
+	bool
+	default y if DT_HAS_NORDIC_NRF7002_SPI_ENABLED || DT_HAS_NORDIC_NRF7002_QSPI_ENABLED
+
+config WIFI_NRF7001
+	bool
+	default y if DT_HAS_NORDIC_NRF7001_SPI_ENABLED || DT_HAS_NORDIC_NRF7001_QSPI_ENABLED
+
+config WIFI_NRF7000
+	bool
+	default y if DT_HAS_NORDIC_NRF7000_SPI_ENABLED || DT_HAS_NORDIC_NRF7000_QSPI_ENABLED
+
 if NRF70_ZEPHYR_SHIM
-config NRF700X_ON_QSPI
-	def_bool $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF700X_QSPI))
+
+config NRF70_ON_QSPI
+	def_bool $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF7002_QSPI)) ||\
+			 $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF7001_QSPI)) ||\
+			 $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF7000_QSPI))
 	select NRFX_QSPI
 
-config NRF700X_ON_SPI
-	def_bool $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF700X_SPI))
+config NRF70_ON_SPI
+	def_bool $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF7002_SPI)) ||\
+			 $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF7001_SPI)) ||\
+			 $(dt_compat_enabled,$(DT_COMPAT_NORDIC_NRF7000_SPI))
 	select SPI
 
-module = WIFI_NRF700X_SHIM_BUS
+module = WIFI_NRF70_SHIM_BUS
 module-dep = LOG
 module-str = Log level for nR70 Zephyr shim
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 
-config WIFI_NRF700X_SHIM_BUS_LOG_LEVEL
+config WIFI_NRF70_SHIM_BUS_LOG_LEVEL
        # Enable error by default
        default 1
 
-module = WIFI_NRF700X_SHIM
+module = WIFI_NRF70_SHIM
 module-dep = LOG
 module-str = Log level for Wi-Fi nRF700x driver
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 
-config WIFI_NRF700X_SHIM_LOG_LEVEL
+config WIFI_NRF70_SHIM_LOG_LEVEL
 	# Enable error by default
 	default 1
 
@@ -46,34 +67,34 @@ config NRF_WIFI_LOW_POWER
 	bool "Enable low power mode in nRF Wi-Fi chipsets"
 	default y
 
-config NRF700X_IRQ_WQ_PRIORITY
+config NRF70_IRQ_WQ_PRIORITY
   int "Priority of the workqueue for handling IRQs"
   default -15
 
-config NRF700X_BH_WQ_PRIORITY
+config NRF70_BH_WQ_PRIORITY
   int "Priority of the workqueue for handling bottom half"
   default 0
 
-config NRF700X_IRQ_WQ_STACK_SIZE
+config NRF70_IRQ_WQ_STACK_SIZE
   int "Stack size of the workqueue for handling IRQs"
   default 2048
 
-config NRF700X_BH_WQ_STACK_SIZE
+config NRF70_BH_WQ_STACK_SIZE
   int "Stack size of the workqueue for handling bottom half"
   default 2048
 
-config NRF700X_WORKQ_STACK_SIZE
+config NRF70_WORKQ_STACK_SIZE
   int "Stack size for workqueue"
   default 4096
 
-config NRF700X_WORKQ_MAX_ITEMS
+config NRF70_WORKQ_MAX_ITEMS
   int "Maximum work items for all workqueues"
   default 100
 
 config HEAP_MEM_POOL_SIZE
 	default 30000
 
-config NRF700X_LOG_VERBOSE
+config NRF70_LOG_VERBOSE
 	bool "Maintains the verbosity of information in logs"
 	default y
 endif # NRF70_ZEPHYR_SHIM

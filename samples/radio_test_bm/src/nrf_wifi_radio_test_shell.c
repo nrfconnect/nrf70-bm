@@ -8,10 +8,11 @@
  * @brief NRF Wi-Fi radio test shell module
  */
 
-#include "fmac_api_common.h"
-#include <nrf70_bm_core.h>
 #include <nrf_wifi_radio_test_shell.h>
 #include <util.h>
+
+#include "fmac_api_common.h"
+#include <nrf70_bm_core.h>
 
 #ifdef CONFIG_ZEPHYR_SHELL
 struct shell *shell_global;
@@ -1010,7 +1011,7 @@ static int nrf_wifi_radio_test_set_rx(size_t argc, const char *argv[]) {
   return 0;
 }
 
-#ifdef CONFIG_NRF700X_SR_COEX_RF_SWITCH
+#ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
 static int nrf_wifi_radio_test_sr_ant_switch_ctrl(size_t argc,
                                                   const char *argv[]) {
   unsigned int val;
@@ -1026,12 +1027,13 @@ static int nrf_wifi_radio_test_sr_ant_switch_ctrl(size_t argc,
 
   return sr_ant_switch(val);
 }
-#endif /* CONFIG_NRF700X_SR_COEX_RF_SWITCH */
+#endif /* CONFIG_NRF70_SR_COEX_RF_SWITCH */
 
 static int nrf_wifi_radio_test_rx_cap(size_t argc, const char *argv[]) {
   enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
   unsigned long rx_cap_type = 0;
   unsigned char *rx_cap_buf = NULL;
+  unsigned char capture_status = 0;
   char *ptr = NULL;
   unsigned int i = 0;
   int ret = -ENOEXEC;
@@ -1069,19 +1071,26 @@ static int nrf_wifi_radio_test_rx_cap(size_t argc, const char *argv[]) {
 
   status = nrf_wifi_fmac_rf_test_rx_cap(
       ctx->rpu_ctx, rx_cap_type, rx_cap_buf, ctx->conf_params.capture_length,
-      ctx->conf_params.lna_gain, ctx->conf_params.bb_gain);
+      ctx->conf_params.capture_timeout, ctx->conf_params.lna_gain, ctx->conf_params.bb_gain,
+      &capture_status);
 
   if (status != NRF_WIFI_STATUS_SUCCESS) {
     RT_SHELL_PRINTF_ERROR("RX ADC capture programming failed\n");
     goto out;
   }
 
-  RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
+  if (capture_status == 0) {
+    RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
 
-  for (i = 0; i < (ctx->conf_params.capture_length); i++) {
-    RT_SHELL_PRINTF_INFO("%02X%02X%02X\n", rx_cap_buf[i * 3 + 2],
-                         rx_cap_buf[i * 3 + 1], rx_cap_buf[i * 3 + 0]);
-  }
+    for (i = 0; i < (ctx->conf_params.capture_length); i++) {
+      RT_SHELL_PRINTF_INFO("%02X%02X%02X\n", rx_cap_buf[i * 3 + 2],
+                          rx_cap_buf[i * 3 + 1], rx_cap_buf[i * 3 + 0]);
+    }
+	} else if (capture_status == 1) {
+    RT_SHELL_PRINTF_INFO("\n************* Capture failed ***********\n");
+	} else {
+    RT_SHELL_PRINTF_INFO("\n************* Packet detection failed ***********\n");
+	}
 
   ret = 0;
 out:
@@ -1611,9 +1620,9 @@ DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_ru_index)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_init)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_tx)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_rx)
-#ifdef CONFIG_NRF700X_SR_COEX_RF_SWITCH
+#ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_sr_ant_switch_ctrl)
-#endif /* CONFIG_NRF700X_SR_COEX_RF_SWITCH */
+#endif /* CONFIG_NRF70_SR_COEX_RF_SWITCH */
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_rx_lna_gain)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_rx_bb_gain)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_rx_capture_length)
@@ -1733,12 +1742,12 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
                   "0 - Disable RX\n"
                   "1 - Enable RX",
                   RTSH(nrf_wifi_radio_test_set_rx), 2, 0),
-#ifdef CONFIG_NRF700X_SR_COEX_RF_SWITCH
+#ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
     SHELL_CMD_ARG(sr_ant_switch_ctrl, NULL,
                   "0 - Switch set to use the BLE antenna\n"
                   "1 - Switch set to use the shared Wi-Fi antenna",
                   RTSH(nrf_wifi_radio_test_sr_ant_switch_ctrl), 2, 0),
-#endif /* CONFIG_NRF700X_SR_COEX_RF_SWITCH */
+#endif /* CONFIG_NRF70_SR_COEX_RF_SWITCH */
     SHELL_CMD_ARG(rx_lna_gain, NULL,
                   "<val> - LNA gain to be configured.\n"
                   "0 = 24 dB\n"

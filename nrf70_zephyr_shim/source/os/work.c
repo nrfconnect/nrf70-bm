@@ -16,31 +16,31 @@
 
 #include "work.h"
 
-LOG_MODULE_DECLARE(wifi_nrf, CONFIG_WIFI_NRF700X_SHIM_BUS_LOG_LEVEL);
+LOG_MODULE_DECLARE(wifi_nrf, CONFIG_WIFI_NRF70_SHIM_BUS_LOG_LEVEL);
 
-K_THREAD_STACK_DEFINE(bh_wq_stack_area, CONFIG_NRF700X_BH_WQ_STACK_SIZE);
+K_THREAD_STACK_DEFINE(bh_wq_stack_area, CONFIG_NRF70_BH_WQ_STACK_SIZE);
 struct k_work_q zep_wifi_bh_q;
 
-K_THREAD_STACK_DEFINE(irq_wq_stack_area, CONFIG_NRF700X_IRQ_WQ_STACK_SIZE);
+K_THREAD_STACK_DEFINE(irq_wq_stack_area, CONFIG_NRF70_IRQ_WQ_STACK_SIZE);
 struct k_work_q zep_wifi_intr_q;
 
-#ifdef CONFIG_NRF700X_TX_DONE_WQ_ENABLED
-K_THREAD_STACK_DEFINE(tx_done_wq_stack_area, CONFIG_NRF700X_TX_DONE_WQ_STACK_SIZE);
+#ifdef CONFIG_NRF70_TX_DONE_WQ_ENABLED
+K_THREAD_STACK_DEFINE(tx_done_wq_stack_area, CONFIG_NRF70_TX_DONE_WQ_STACK_SIZE);
 struct k_work_q zep_wifi_tx_done_q;
-#endif /* CONFIG_NRF700X_TX_DONE_WQ_ENABLED */
+#endif /* CONFIG_NRF70_TX_DONE_WQ_ENABLED */
 
-#ifdef CONFIG_NRF700X_RX_WQ_ENABLED
-K_THREAD_STACK_DEFINE(rx_wq_stack_area, CONFIG_NRF700X_RX_WQ_STACK_SIZE);
+#ifdef CONFIG_NRF70_RX_WQ_ENABLED
+K_THREAD_STACK_DEFINE(rx_wq_stack_area, CONFIG_NRF70_RX_WQ_STACK_SIZE);
 struct k_work_q zep_wifi_rx_q;
-#endif /* CONFIG_NRF700X_RX_WQ_ENABLED */
+#endif /* CONFIG_NRF70_RX_WQ_ENABLED */
 
-struct zep_work_item zep_work_item[CONFIG_NRF700X_WORKQ_MAX_ITEMS];
+struct zep_work_item zep_work_item[CONFIG_NRF70_WORKQ_MAX_ITEMS];
 
 int get_free_work_item_index(void)
 {
 	int i;
 
-	for (i = 0; i < CONFIG_NRF700X_WORKQ_MAX_ITEMS; i++) {
+	for (i = 0; i < CONFIG_NRF70_WORKQ_MAX_ITEMS; i++) {
 		if (zep_work_item[i].in_use)
 			continue;
 		return i;
@@ -78,43 +78,43 @@ static int workqueue_init(void)
 	k_work_queue_start(&zep_wifi_bh_q,
 						bh_wq_stack_area,
 						K_THREAD_STACK_SIZEOF(bh_wq_stack_area),
-						CONFIG_NRF700X_BH_WQ_PRIORITY,
+						CONFIG_NRF70_BH_WQ_PRIORITY,
 						NULL);
 
-	k_thread_name_set(&zep_wifi_bh_q.thread, "nrf700x_bh_wq");
+	k_thread_name_set(&zep_wifi_bh_q.thread, "NRF70_bh_wq");
 
 	k_work_queue_init(&zep_wifi_intr_q);
 
 	k_work_queue_start(&zep_wifi_intr_q,
 						irq_wq_stack_area,
 						K_THREAD_STACK_SIZEOF(irq_wq_stack_area),
-						CONFIG_NRF700X_IRQ_WQ_PRIORITY,
+						CONFIG_NRF70_IRQ_WQ_PRIORITY,
 						NULL);
 
-	k_thread_name_set(&zep_wifi_intr_q.thread, "nrf700x_intr_wq");
-#ifdef CONFIG_NRF700X_TX_DONE_WQ_ENABLED
+	k_thread_name_set(&zep_wifi_intr_q.thread, "NRF70_intr_wq");
+#ifdef CONFIG_NRF70_TX_DONE_WQ_ENABLED
 	k_work_queue_init(&zep_wifi_tx_done_q);
 
 	k_work_queue_start(&zep_wifi_tx_done_q,
 						tx_done_wq_stack_area,
 						K_THREAD_STACK_SIZEOF(tx_done_wq_stack_area),
-						CONFIG_NRF700X_TX_DONE_WQ_PRIORITY,
+						CONFIG_NRF70_TX_DONE_WQ_PRIORITY,
 						NULL);
 
-	k_thread_name_set(&zep_wifi_tx_done_q.thread, "nrf700x_tx_done_wq");
-#endif /* CONFIG_NRF700X_TX_DONE_WQ_ENABLED */
+	k_thread_name_set(&zep_wifi_tx_done_q.thread, "NRF70_tx_done_wq");
+#endif /* CONFIG_NRF70_TX_DONE_WQ_ENABLED */
 
-#ifdef CONFIG_NRF700X_RX_WQ_ENABLED
+#ifdef CONFIG_NRF70_RX_WQ_ENABLED
 	k_work_queue_init(&zep_wifi_rx_q);
 
 	k_work_queue_start(&zep_wifi_rx_q,
 						rx_wq_stack_area,
 						K_THREAD_STACK_SIZEOF(rx_wq_stack_area),
-						CONFIG_NRF700X_RX_WQ_PRIORITY,
+						CONFIG_NRF70_RX_WQ_PRIORITY,
 						NULL);
 
-	k_thread_name_set(&zep_wifi_rx_q.thread, "nrf700x_rx_wq");
-#endif /* CONFIG_NRF700X_RX_WQ_ENABLED */
+	k_thread_name_set(&zep_wifi_rx_q.thread, "NRF70_rx_wq");
+#endif /* CONFIG_NRF70_RX_WQ_ENABLED */
 
 	return 0;
 }
@@ -134,14 +134,14 @@ void work_schedule(struct zep_work_item *item)
 		k_work_submit_to_queue(&zep_wifi_intr_q, &item->work);
 	else if (item->type == ZEP_WORK_TYPE_BH)
 		k_work_submit_to_queue(&zep_wifi_bh_q, &item->work);
-#ifdef CONFIG_NRF700X_TX_DONE_WQ_ENABLED
+#ifdef CONFIG_NRF70_TX_DONE_WQ_ENABLED
 	else if (item->type == ZEP_WORK_TYPE_TX_DONE)
 		k_work_submit_to_queue(&zep_wifi_tx_done_q, &item->work);
-#endif /* CONFIG_NRF700X_TX_DONE_WQ_ENABLED */
-#ifdef CONFIG_NRF700X_RX_WQ_ENABLED
+#endif /* CONFIG_NRF70_TX_DONE_WQ_ENABLED */
+#ifdef CONFIG_NRF70_RX_WQ_ENABLED
 	else if (item->type == ZEP_WORK_TYPE_RX)
 		k_work_submit_to_queue(&zep_wifi_rx_q, &item->work);
-#endif /* CONFIG_NRF700X_RX_WQ_ENABLED */
+#endif /* CONFIG_NRF70_RX_WQ_ENABLED */
 }
 
 void work_kill(struct zep_work_item *item)

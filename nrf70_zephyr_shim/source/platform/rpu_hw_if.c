@@ -22,9 +22,9 @@
 #include "qspi_if.h"
 #include "spi_if.h"
 
-LOG_MODULE_REGISTER(wifi_nrf_bus, CONFIG_WIFI_NRF700X_SHIM_BUS_LOG_LEVEL);
+LOG_MODULE_REGISTER(wifi_nrf_bus, CONFIG_WIFI_NRF70_SHIM_BUS_LOG_LEVEL);
 
-#define NRF7002_NODE DT_NODELABEL(nrf700x)
+#define NRF7002_NODE DT_NODELABEL(nrf70)
 
 static const struct gpio_dt_spec host_irq_spec =
 GPIO_DT_SPEC_GET(NRF7002_NODE, host_irq_gpios);
@@ -301,7 +301,7 @@ int rpu_write(unsigned int addr, const void *data, int len)
 
 int rpu_sleep(void)
 {
-#if CONFIG_NRF700X_ON_QSPI
+#if CONFIG_NRF70_ON_QSPI
 	return qspi_cmd_sleep_rpu(&qspi_perip);
 #else
 	return spim_cmd_sleep_rpu_fn();
@@ -378,7 +378,7 @@ int rpu_wrsr2(uint8_t data)
 {
 	int ret;
 
-#if CONFIG_NRF700X_ON_QSPI
+#if CONFIG_NRF70_ON_QSPI
 	ret = qspi_cmd_wakeup_rpu(&qspi_perip, data);
 #else
 	ret = spim_cmd_rpu_wakeup_fn(data);
@@ -390,7 +390,7 @@ int rpu_wrsr2(uint8_t data)
 
 int rpu_rdsr2(void)
 {
-#if CONFIG_NRF700X_ON_QSPI
+#if CONFIG_NRF70_ON_QSPI
 	return qspi_validate_rpu_wake_writecmd(&qspi_perip);
 #else
 	return spi_validate_rpu_wake_writecmd();
@@ -399,7 +399,7 @@ int rpu_rdsr2(void)
 
 int rpu_rdsr1(void)
 {
-#if CONFIG_NRF700X_ON_QSPI
+#if CONFIG_NRF70_ON_QSPI
 	return qspi_wait_while_rpu_awake(&qspi_perip);
 #else
 	return spim_wait_while_rpu_awake();
@@ -434,7 +434,7 @@ int rpu_init(void)
 
 	CALL_RPU_FUNC(rpu_gpio_config);
 
-#ifdef CONFIG_NRF700X_SR_COEX_RF_SWITCH
+#ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
 	ret = sr_gpio_config();
 	if (ret) {
 		goto remove_sr_gpio;
@@ -450,7 +450,7 @@ int rpu_init(void)
 remove_rpu_gpio:
 	rpu_gpio_remove();
 
-#ifdef CONFIG_NRF700X_SR_COEX_RF_SWITCH
+#ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
 remove_sr_gpio:
 	sr_gpio_remove();
 #endif
@@ -484,7 +484,7 @@ int rpu_disable(void)
 
 	CALL_RPU_FUNC(rpu_pwroff);
 	CALL_RPU_FUNC(rpu_gpio_remove);
-#ifdef CONFIG_NRF700X_SR_COEX_RF_SWITCH
+#ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
 	CALL_RPU_FUNC(sr_gpio_remove);
 #endif
 	qdev = NULL;

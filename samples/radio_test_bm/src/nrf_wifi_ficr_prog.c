@@ -12,10 +12,10 @@
 #include <zephyr/kernel.h>
 #include "rpu_if.h"
 #include "rpu_hw_if.h"
-#include "ficr_prog.h"
+#include "nrf_wifi_ficr_prog.h"
 
 
-LOG_MODULE_REGISTER(otp_prog, CONFIG_WIFI_NRF700X_SHIM_BUS_LOG_LEVEL);
+LOG_MODULE_REGISTER(otp_prog, CONFIG_WIFI_NRF70_SHIM_BUS_LOG_LEVEL);
 
 static void write_word(unsigned int addr, unsigned int data)
 {

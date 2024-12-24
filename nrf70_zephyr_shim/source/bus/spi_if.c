@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2024 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -13,13 +13,13 @@
 
 #include <zephyr/drivers/spi.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/wifi/nrf_wifi/bus/qspi_if.h>
 
-#include "qspi_if.h"
 #include "spi_if.h"
 
-LOG_MODULE_DECLARE(wifi_nrf_bus, CONFIG_WIFI_NRF700X_SHIM_BUS_LOG_LEVEL);
+LOG_MODULE_DECLARE(wifi_nrf_bus, CONFIG_WIFI_NRF70_SHIM_BUS_LOG_LEVEL);
 
-#define NRF7002_NODE DT_NODELABEL(nrf700x)
+#define NRF7002_NODE DT_NODELABEL(nrf70)
 
 static struct qspi_config *spim_config;
 
@@ -58,6 +58,7 @@ static int spim_xfer_rx(unsigned int addr, void *data, unsigned int len, unsigne
 		addr & 0xFF,
 		0 /* dummy byte */
 	};
+	uint8_t discard[sizeof(hdr) + 2 * 4];
 
 	const struct spi_buf tx_buf[] = {
 		{.buf = hdr,  .len = sizeof(hdr) },
@@ -67,11 +68,16 @@ static int spim_xfer_rx(unsigned int addr, void *data, unsigned int len, unsigne
 	const struct spi_buf_set tx = { .buffers = tx_buf, .count = 2 };
 
 	const struct spi_buf rx_buf[] = {
-		{.buf = NULL,  .len = sizeof(hdr) + discard_bytes},
+		{.buf = discard,  .len = sizeof(hdr) + discard_bytes},
 		{.buf = data, .len = len },
 	};
 
 	const struct spi_buf_set rx = { .buffers = rx_buf, .count = 2 };
+
+	if (rx_buf[0].len > sizeof(discard)) {
+		LOG_ERR("Discard bytes too large, please adjust buf size");
+		return -EINVAL;
+	}
 
 	return spi_transceive_dt(&spi_spec, &tx, &rx);
 }
@@ -103,8 +109,9 @@ int spim_read_reg(uint32_t reg_addr, uint8_t *reg_value)
 
 	LOG_DBG("err: %d -> %x %x %x %x %x %x", err, sr[0], sr[1], sr[2], sr[3], sr[4], sr[5]);
 
-	if (err == 0)
+	if (err == 0) {
 		*reg_value = sr[1];
+	}
 
 	return err;
 }

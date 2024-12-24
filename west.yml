@@ -3,19 +3,34 @@
 
 manifest:
   remotes:
+    - name: zephyr
+      url-base: https://github.com/zephyrproject-rtos
     - name: ncs
       url-base: https://github.com/nrfconnect
-
+  defaults:
+    remote: zephyr
   projects:
     # For testing with nRF boards
-    - name: nrf
-      remote: ncs
-      repo-path: sdk-nrf
-      revision: v2.7.0
-      import: true
-
-    # TODO: Once west supports sparse checkout, we should use it here.
+    - name: zephyr
+      repo-path: zephyr
+      revision: main
+      import:
+        name-allowlist:
+          - hal_nordic
+          - picolibc
+          - cmsis
+          - cmsis-dsp
+          - cmsis-nn
+        name-blacklist:
+          - nrf_wifi
+    # nRF70 Wi-Fi OSAL library
+    - name: nrf_wifi
+      repo-path: nrf_wifi
+      revision: 68b018473527fa90237b1abad7ee2568a665bb44
+      path: modules/lib/nrf_wifi
+    # nRF70 Wi-Fi firmware blobs (without west blobs fetch)
     - name: nrfxlib
       remote: ncs
       repo-path: sdk-nrfxlib
-      revision: pull/1414/head
+      revision: main
+      path: nrfxlib

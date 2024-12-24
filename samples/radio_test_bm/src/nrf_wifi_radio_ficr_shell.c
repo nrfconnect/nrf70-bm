@@ -8,11 +8,11 @@
  * @brief NRF Wi-Fi radio test shell module
  */
 
-#include "ficr_prog.h"
-#include <nrf70_bm_core.h>
 #include <nrf_wifi_radio_test_shell.h>
 #include <util.h>
+#include <nrf70_bm_core.h>
 
+#include "nrf_wifi_ficr_prog.h"
 #include "fmac_api_common.h"
 
 extern struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
@@ -277,8 +277,7 @@ static int nrf_wifi_radio_test_otp_write_params(size_t argc, const char *argv[])
     write_val[0] = strtoul(argv[2], NULL, 0);
     write_val[1] = strtoul(argv[3], NULL, 0) & 0xFFFF;
 
-    if (!nrf_wifi_utils_is_mac_addr_valid(fmac_dev_ctx->fpriv->opriv,
-                                          (const char *)&write_val[0])) {
+    if (!nrf_wifi_utils_is_mac_addr_valid((const char *)&write_val[0])) {
       RT_SHELL_PRINTF_ERROR("Invalid MAC address. MAC address cannot be all "
                             "0's, broadcast or multicast address\n");
       return -ENOEXEC;

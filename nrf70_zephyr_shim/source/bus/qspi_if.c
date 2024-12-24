@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2024 Nordic Semiconductor ASA
  *
- * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
@@ -9,14 +9,13 @@
  * Zephyr OS layer of the Wi-Fi driver.
  */
 
-#define DT_DRV_COMPAT nordic_nrf700x_qspi
-
 #include <errno.h>
 #include <string.h>
 
 #include <zephyr/init.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/pinctrl.h>
+#include <zephyr/drivers/wifi/nrf_wifi/bus/qspi_if.h>
 
 #include <soc.h>
 #include <nrf_erratas.h>
@@ -25,9 +24,37 @@
 #include <hal/nrf_gpio.h>
 
 #include "spi_nor.h"
-#include "qspi_if.h"
 
-static struct qspi_config *qspi_config;
+/* The QSPI bus node which the NRF70 is on */
+#define QSPI_IF_BUS_NODE DT_NODELABEL(qspi)
+
+/* QSPI bus properties from the devicetree */
+#define QSPI_IF_BUS_IRQN      DT_IRQN(QSPI_IF_BUS_NODE)
+#define QSPI_IF_BUS_IRQ_PRIO  DT_IRQ(QSPI_IF_BUS_NODE, priority)
+#define QSPI_IF_BUS_SCK_PIN   DT_PROP(QSPI_IF_BUS_NODE, sck_pin)
+#define QSPI_IF_BUS_CSN_PIN   DT_PROP(QSPI_IF_BUS_NODE, csn_pins)
+#define QSPI_IF_BUS_IO0_PIN   DT_PROP_BY_IDX(QSPI_IF_BUS_NODE, io_pins, 0)
+#define QSPI_IF_BUS_IO1_PIN   DT_PROP_BY_IDX(QSPI_IF_BUS_NODE, io_pins, 1)
+#define QSPI_IF_BUS_IO2_PIN   DT_PROP_BY_IDX(QSPI_IF_BUS_NODE, io_pins, 2)
+#define QSPI_IF_BUS_IO3_PIN   DT_PROP_BY_IDX(QSPI_IF_BUS_NODE, io_pins, 3)
+
+#define QSPI_IF_BUS_HAS_4_IO_PINS \
+	(DT_PROP_LEN(QSPI_IF_BUS_NODE, io_pins) == 4)
+
+#define QSPI_IF_BUS_PINCTRL_DT_DEV_CONFIG_GET \
+	PINCTRL_DT_DEV_CONFIG_GET(QSPI_IF_BUS_NODE)
+
+/* The NRF70 device node which is on the QSPI bus */
+#define QSPI_IF_DEVICE_NODE DT_NODELABEL(nrf70)
+
+/* NRF70 device QSPI properties */
+#define QSPI_IF_DEVICE_FREQUENCY DT_PROP(QSPI_IF_DEVICE_NODE, qspi_frequency)
+#define QSPI_IF_DEVICE_CPHA      DT_PROP(QSPI_IF_DEVICE_NODE, qspi_cpha)
+#define QSPI_IF_DEVICE_CPOL      DT_PROP(QSPI_IF_DEVICE_NODE, qspi_cpol)
+#define QSPI_IF_DEVICE_QUAD_MODE DT_PROP(QSPI_IF_DEVICE_NODE, qspi_quad_mode)
+#define QSPI_IF_DEVICE_RX_DELAY  DT_PROP(QSPI_IF_DEVICE_NODE, qspi_rx_delay)
+
+static struct qspi_config *qspi_cfg;
 #if NRF_QSPI_HAS_XIP_ENC || NRF_QSPI_HAS_DMA_ENC
 static unsigned int nonce_last_addr;
 static unsigned int nonce_cnt;
@@ -36,12 +63,11 @@ static unsigned int nonce_cnt;
 /* Main config structure */
 static nrfx_qspi_config_t QSPIconfig;
 
-#define INST_0_SCK_FREQUENCY DT_INST_PROP(0, sck_frequency)
 /*
  * According to the respective specifications, the nRF52 QSPI supports clock
  * frequencies 2 - 32 MHz and the nRF53 one supports 6 - 96 MHz.
  */
-BUILD_ASSERT(INST_0_SCK_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 16),
+BUILD_ASSERT(QSPI_IF_DEVICE_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 16),
 	     "Unsupported SCK frequency.");
 
 /*
@@ -59,29 +85,61 @@ BUILD_ASSERT(INST_0_SCK_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 16),
  * PCLK192M frequency"), but after that operation is complete, the default
  * divider needs to be restored to avoid increased current consumption.
  */
-/* To prevent anomaly 159, use only divider /1 for HFCLK192M. */
+#if (QSPI_IF_DEVICE_FREQUENCY >= NRF_QSPI_BASE_CLOCK_FREQ)
+/* For requested SCK >= 96 MHz, use HFCLK192M / 1 / (2*1) = 96 MHz */
 #define BASE_CLOCK_DIV NRF_CLOCK_HFCLK_DIV_1
-#if (INST_0_SCK_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 4))
-/* For requested SCK >= 24 MHz, use HFCLK192M / 1 / (2*4) = 24 MHz */
-#define INST_0_SCK_CFG NRF_QSPI_FREQ_DIV4
+#define INST_0_SCK_CFG NRF_QSPI_FREQ_DIV1
+/* If anomaly 159 is to be prevented, only /1 divider can be used. */
+#elif NRF53_ERRATA_159_ENABLE_WORKAROUND
+#define BASE_CLOCK_DIV NRF_CLOCK_HFCLK_DIV_1
+#define INST_0_SCK_CFG (DIV_ROUND_UP(NRF_QSPI_BASE_CLOCK_FREQ, \
+				     QSPI_IF_DEVICE_FREQUENCY) - 1)
+#elif (QSPI_IF_DEVICE_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 2))
+/* For 96 MHz > SCK >= 48 MHz, use HFCLK192M / 2 / (2*1) = 48 MHz */
+#define BASE_CLOCK_DIV NRF_CLOCK_HFCLK_DIV_2
+#define INST_0_SCK_CFG NRF_QSPI_FREQ_DIV1
+#elif (QSPI_IF_DEVICE_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 3))
+/* For 48 MHz > SCK >= 32 MHz, use HFCLK192M / 1 / (2*3) = 32 MHz */
+#define BASE_CLOCK_DIV NRF_CLOCK_HFCLK_DIV_1
+#define INST_0_SCK_CFG NRF_QSPI_FREQ_DIV3
 #else
-/* For requested SCK < 24 MHz, calculate the configuration value. */
+/* For requested SCK < 32 MHz, use divider /2 for HFCLK192M. */
+#define BASE_CLOCK_DIV NRF_CLOCK_HFCLK_DIV_2
 #define INST_0_SCK_CFG (DIV_ROUND_UP(NRF_QSPI_BASE_CLOCK_FREQ / 2, \
-				     INST_0_SCK_FREQUENCY) - 1)
+				     QSPI_IF_DEVICE_FREQUENCY) - 1)
 #endif
+
+#if BASE_CLOCK_DIV == NRF_CLOCK_HFCLK_DIV_1
+/* For 8 MHz, use HFCLK192M / 1 / (2*12) */
+#define INST_0_SCK_CFG_WAKE NRF_QSPI_FREQ_DIV12
+#elif BASE_CLOCK_DIV == NRF_CLOCK_HFCLK_DIV_2
 /* For 8 MHz, use HFCLK192M / 2 / (2*6) */
 #define INST_0_SCK_CFG_WAKE NRF_QSPI_FREQ_DIV6
+#else
+#error "Unsupported base clock divider for wake-up frequency."
+#endif
+
+/* After the base clock divider is changed, some time is needed for the new
+ * setting to take effect. This value specifies the delay (in microseconds)
+ * to be applied to ensure that the clock is ready when the QSPI operation
+ * starts. It was measured with a logic analyzer (unfortunately, the nRF5340
+ * specification does not provide any numbers in this regard).
+ */
+/* FIXME: This has adverse impact on performance, ~3Mbps, so, for now, it is
+ * disabled till further investigation.
+ */
+#define BASE_CLOCK_SWITCH_DELAY_US 0
 
 #else
 /*
  * On nRF52 Series SoCs, the base clock divider is not configurable,
  * so BASE_CLOCK_DIV is not defined.
  */
-#if (INST_0_SCK_FREQUENCY >= NRF_QSPI_BASE_CLOCK_FREQ)
+#if (QSPI_IF_DEVICE_FREQUENCY >= NRF_QSPI_BASE_CLOCK_FREQ)
 #define INST_0_SCK_CFG NRF_QSPI_FREQ_DIV1
 #else
 #define INST_0_SCK_CFG (DIV_ROUND_UP(NRF_QSPI_BASE_CLOCK_FREQ, \
-					 INST_0_SCK_FREQUENCY) - 1)
+					 QSPI_IF_DEVICE_FREQUENCY) - 1)
 #endif
 
 /* For 8 MHz, use PCLK32M / 4 */
@@ -89,21 +147,12 @@ BUILD_ASSERT(INST_0_SCK_FREQUENCY >= (NRF_QSPI_BASE_CLOCK_FREQ / 16),
 
 #endif /* defined(CONFIG_SOC_SERIES_NRF53X) */
 
-/* for accessing devicetree properties of the bus node */
-#define QSPI_NODE DT_BUS(DT_DRV_INST(0))
-#define QSPI_PROP_AT(prop, idx) DT_PROP_BY_IDX(QSPI_NODE, prop, idx)
-#define QSPI_PROP_LEN(prop) DT_PROP_LEN(QSPI_NODE, prop)
-
-#define INST_0_QER                                                                                 \
-	_CONCAT(JESD216_DW15_QER_, DT_ENUM_TOKEN(DT_DRV_INST(0), quad_enable_requirements))
-
 static int qspi_device_init(const struct device *dev);
 static void qspi_device_uninit(const struct device *dev);
 
-#define QSPI_SCK_DELAY 0
 #define WORD_SIZE 4
 
-LOG_MODULE_DECLARE(wifi_nrf_bus, CONFIG_WIFI_NRF700X_SHIM_BUS_LOG_LEVEL);
+LOG_MODULE_DECLARE(wifi_nrf_bus, CONFIG_WIFI_NRF70_SHIM_BUS_LOG_LEVEL);
 
 /**
  * @brief QSPI buffer structure
@@ -158,10 +207,11 @@ static inline int qspi_get_mode(bool cpol, bool cpha)
 {
 	register int ret = -EINVAL;
 
-	if ((!cpol) && (!cpha))
+	if ((!cpol) && (!cpha)) {
 		ret = 0;
-	else if (cpol && cpha)
+	} else if (cpol && cpha) {
 		ret = 1;
+	}
 
 	__ASSERT(ret != -EINVAL, "Invalid QSPI mode");
 
@@ -263,9 +313,9 @@ nrfx_err_t _nrfx_qspi_init(nrfx_qspi_config_t const *p_config, nrfx_qspi_handler
 	nrfx_qspi_init(p_config, handler, p_context);
 
 	/* RDC4IO = 4'hA (register IFTIMING), which means 10 Dummy Cycles for READ4. */
-	p_reg->IFTIMING |= qspi_config->RDC4IO;
+	p_reg->IFTIMING |= qspi_cfg->RDC4IO;
 
-	/* LOG_DBG("%04x : IFTIMING", p_reg->IFTIMING & qspi_config->RDC4IO); */
+	/* LOG_DBG("%04x : IFTIMING", p_reg->IFTIMING & qspi_cfg->RDC4IO); */
 
 	/* ACTIVATE task fails for slave bitfile so ignore it */
 	return NRFX_SUCCESS;
@@ -284,9 +334,9 @@ static struct qspi_nor_data qspi_nor_memory_data = {
 #endif /* CONFIG_MULTITHREADING */
 };
 
-NRF_DT_CHECK_NODE_HAS_PINCTRL_SLEEP(QSPI_NODE);
+NRF_DT_CHECK_NODE_HAS_PINCTRL_SLEEP(QSPI_IF_BUS_NODE);
 
-IF_ENABLED(CONFIG_PINCTRL, (PINCTRL_DT_DEFINE(QSPI_NODE)));
+IF_ENABLED(CONFIG_PINCTRL, (PINCTRL_DT_DEFINE(QSPI_IF_BUS_NODE)));
 
 /**
  * @brief Converts NRFX return codes to the zephyr ones
@@ -336,6 +386,7 @@ static inline void qspi_lock(const struct device *dev)
 	 */
 #if defined(CONFIG_SOC_SERIES_NRF53X)
 	nrf_clock_hfclk192m_div_set(NRF_CLOCK, BASE_CLOCK_DIV);
+	k_busy_wait(BASE_CLOCK_SWITCH_DELAY_US);
 #endif
 }
 
@@ -345,6 +396,7 @@ static inline void qspi_unlock(const struct device *dev)
 	/* Restore the default base clock divider to reduce power consumption.
 	 */
 	nrf_clock_hfclk192m_div_set(NRF_CLOCK, NRF_CLOCK_HFCLK_DIV_4);
+	k_busy_wait(BASE_CLOCK_SWITCH_DELAY_US);
 #endif
 
 #ifdef CONFIG_MULTITHREADING
@@ -410,15 +462,17 @@ static inline void qspi_complete(struct qspi_nor_data *dev_data)
 
 static inline void _qspi_complete(struct qspi_nor_data *dev_data)
 {
-	if (!qspi_config->easydma)
+	if (!qspi_cfg->easydma) {
 		return;
+	}
 
 	qspi_complete(dev_data);
 }
 static inline void _qspi_wait_for_completion(const struct device *dev, nrfx_err_t res)
 {
-	if (!qspi_config->easydma)
+	if (!qspi_cfg->easydma) {
 		return;
+	}
 
 	qspi_wait_for_completion(dev, res);
 }
@@ -434,8 +488,9 @@ static void qspi_handler(nrfx_qspi_evt_t event, void *p_context)
 {
 	struct qspi_nor_data *dev_data = p_context;
 
-	if (event == NRFX_QSPI_EVENT_DONE)
+	if (event == NRFX_QSPI_EVENT_DONE) {
 		_qspi_complete(dev_data);
+	}
 }
 
 static bool qspi_initialized;
@@ -446,7 +501,7 @@ static int qspi_device_init(const struct device *dev)
 	nrfx_err_t res;
 	int ret = 0;
 
-	if (!IS_ENABLED(CONFIG_NRF700X_QSPI_LOW_POWER)) {
+	if (!IS_ENABLED(CONFIG_NRF70_QSPI_LOW_POWER)) {
 		return 0;
 	}
 
@@ -463,7 +518,7 @@ static int qspi_device_init(const struct device *dev)
 	if (!qspi_initialized) {
 		res = nrfx_qspi_init(&QSPIconfig, qspi_handler, dev_data);
 		ret = qspi_get_zephyr_ret_code(res);
-		NRF_QSPI->IFTIMING |= qspi_config->RDC4IO;
+		NRF_QSPI->IFTIMING |= qspi_cfg->RDC4IO;
 		qspi_initialized = (ret == 0);
 	}
 
@@ -476,7 +531,7 @@ static void qspi_device_uninit(const struct device *dev)
 {
 	bool last = true;
 
-	if (!IS_ENABLED(CONFIG_NRF700X_QSPI_LOW_POWER)) {
+	if (!IS_ENABLED(CONFIG_NRF70_QSPI_LOW_POWER)) {
 		return;
 	}
 
@@ -492,10 +547,11 @@ static void qspi_device_uninit(const struct device *dev)
 
 	if (last) {
 		while (nrfx_qspi_mem_busy_check() != NRFX_SUCCESS) {
-			if (IS_ENABLED(CONFIG_MULTITHREADING))
+			if (IS_ENABLED(CONFIG_MULTITHREADING)) {
 				k_msleep(50);
-			else
+			} else {
 				k_busy_wait(50000);
+			}
 		}
 
 		nrfx_qspi_uninit();
@@ -519,8 +575,9 @@ static void qspi_device_uninit(const struct device *dev)
 static int qspi_send_cmd(const struct device *dev, const struct qspi_cmd *cmd, bool wren)
 {
 	/* Check input parameters */
-	if (!cmd)
+	if (!cmd) {
 		return -EINVAL;
+	}
 
 	const void *tx_buf = NULL;
 	size_t tx_len = 0;
@@ -539,13 +596,15 @@ static int qspi_send_cmd(const struct device *dev, const struct qspi_cmd *cmd, b
 	}
 
 	if ((rx_len != 0) && (tx_len != 0)) {
-		if (rx_len != tx_len)
+		if (rx_len != tx_len) {
 			return -EINVAL;
+		}
 
 		xfer_len += tx_len;
-	} else
+	} else {
 		/* At least one of these is zero. */
 		xfer_len += tx_len + rx_len;
+	}
 
 	if (xfer_len > NRF_QSPI_CINSTR_LEN_9B) {
 		LOG_WRN("cinstr %02x transfer too long: %zu", cmd->op_code, xfer_len);
@@ -608,8 +667,6 @@ static int qspi_wait_while_writing(const struct device *dev)
  */
 static inline void qspi_fill_init_struct(nrfx_qspi_config_t *initstruct)
 {
-	bool quad_mode;
-
 	/* Configure XIP offset */
 	initstruct->xip_offset = 0;
 
@@ -618,13 +675,13 @@ static inline void qspi_fill_init_struct(nrfx_qspi_config_t *initstruct)
 	initstruct->skip_psel_cfg = true,
 #else
 	/* Configure pins */
-	initstruct->pins.sck_pin = DT_PROP(QSPI_NODE, sck_pin);
-	initstruct->pins.csn_pin = QSPI_PROP_AT(csn_pins, 0);
-	initstruct->pins.io0_pin = QSPI_PROP_AT(io_pins, 0);
-	initstruct->pins.io1_pin = QSPI_PROP_AT(io_pins, 1);
-#if QSPI_PROP_LEN(io_pins) > 2
-	initstruct->pins.io2_pin = QSPI_PROP_AT(io_pins, 2);
-	initstruct->pins.io3_pin = QSPI_PROP_AT(io_pins, 3);
+	initstruct->pins.sck_pin = QSPI_IF_BUS_SCK_PIN;
+	initstruct->pins.csn_pin = QSPI_IF_BUS_CSN_PIN;
+	initstruct->pins.io0_pin = QSPI_IF_BUS_IO0_PIN;
+	initstruct->pins.io1_pin = QSPI_IF_BUS_IO1_PIN;
+#if QSPI_IF_BUS_HAS_4_IO_PINS
+	initstruct->pins.io2_pin = QSPI_IF_BUS_IO2_PIN;
+	initstruct->pins.io3_pin = QSPI_IF_BUS_IO3_PIN;
 #else
 	initstruct->pins.io2_pin = NRF_QSPI_PIN_NOT_CONNECTED;
 	initstruct->pins.io3_pin = NRF_QSPI_PIN_NOT_CONNECTED;
@@ -637,15 +694,15 @@ static inline void qspi_fill_init_struct(nrfx_qspi_config_t *initstruct)
 
 	/* Configure physical interface */
 	initstruct->phy_if.sck_freq = INST_0_SCK_CFG;
-	/* Using MHZ fails checkpatch constant check */
-	if (INST_0_SCK_FREQUENCY >= 16000000) {
-		qspi_config->qspi_slave_latency = 1;
-	}
-	initstruct->phy_if.sck_delay = QSPI_SCK_DELAY;
-	initstruct->phy_if.spi_mode = qspi_get_mode(DT_INST_PROP(0, cpol), DT_INST_PROP(0, cpha));
 
-	quad_mode = DT_INST_PROP(0, quad_mode);
-	if (quad_mode) {
+	/* Using MHZ fails checkpatch constant check */
+	if (QSPI_IF_DEVICE_FREQUENCY >= 16000000) {
+		qspi_cfg->qspi_slave_latency = 1;
+	}
+	initstruct->phy_if.sck_delay = QSPI_IF_DEVICE_RX_DELAY;
+	initstruct->phy_if.spi_mode = qspi_get_mode(QSPI_IF_DEVICE_CPOL, QSPI_IF_DEVICE_CPHA);
+
+	if (QSPI_IF_DEVICE_QUAD_MODE) {
 		initstruct->prot_if.readoc = NRF_QSPI_READOC_READ4IO;
 		initstruct->prot_if.writeoc = NRF_QSPI_WRITEOC_PP4IO;
 	} else {
@@ -659,8 +716,9 @@ static inline void qspi_fill_init_struct(nrfx_qspi_config_t *initstruct)
 /* Configures QSPI memory for the transfer */
 static int qspi_nrfx_configure(const struct device *dev)
 {
-	if (!dev)
+	if (!dev) {
 		return -ENXIO;
+	}
 
 	struct qspi_nor_data *dev_data = dev->data;
 
@@ -673,6 +731,7 @@ static int qspi_nrfx_configure(const struct device *dev)
 	 * divider.
 	 */
 	nrf_clock_hfclk192m_div_set(NRF_CLOCK, BASE_CLOCK_DIV);
+	k_busy_wait(BASE_CLOCK_SWITCH_DELAY_US);
 #endif
 
 	nrfx_err_t res = _nrfx_qspi_init(&QSPIconfig, qspi_handler, dev_data);
@@ -680,6 +739,7 @@ static int qspi_nrfx_configure(const struct device *dev)
 #if defined(CONFIG_SOC_SERIES_NRF53X)
 	/* Restore the default /4 divider after the QSPI initialization. */
 	nrf_clock_hfclk192m_div_set(NRF_CLOCK, NRF_CLOCK_HFCLK_DIV_4);
+	k_busy_wait(BASE_CLOCK_SWITCH_DELAY_US);
 #endif
 
 	int ret = qspi_get_zephyr_ret_code(res);
@@ -727,12 +787,14 @@ static int qspi_nrfx_configure(const struct device *dev)
 			 * commands sent while it's happening can be
 			 * corrupted.  Wait.
 			 */
-			if (ret == 0)
+			if (ret == 0) {
 				ret = qspi_wait_while_writing(dev);
+			}
 		}
 
-		if (ret < 0)
+		if (ret < 0) {
 			LOG_ERR("QE %s failed: %d", qe_value ? "set" : "clear", ret);
+		}
 	}
 
 	return ret;
@@ -746,13 +808,15 @@ static inline nrfx_err_t read_non_aligned(const struct device *dev, int addr, vo
 
 	int flash_prefix = (WORD_SIZE - (addr % WORD_SIZE)) % WORD_SIZE;
 
-	if (flash_prefix > size)
+	if (flash_prefix > size) {
 		flash_prefix = size;
+	}
 
 	int dest_prefix = (WORD_SIZE - (int)dptr % WORD_SIZE) % WORD_SIZE;
 
-	if (dest_prefix > size)
+	if (dest_prefix > size) {
 		dest_prefix = size;
+	}
 
 	int flash_suffix = (size - flash_prefix) % WORD_SIZE;
 	int flash_middle = size - flash_prefix - flash_suffix;
@@ -771,12 +835,14 @@ static inline nrfx_err_t read_non_aligned(const struct device *dev, int addr, vo
 
 		_qspi_wait_for_completion(dev, res);
 
-		if (res != NRFX_SUCCESS)
+		if (res != NRFX_SUCCESS) {
 			return res;
+		}
 
 		/* perform shift in RAM */
-		if (flash_prefix != dest_prefix)
+		if (flash_prefix != dest_prefix) {
 			memmove(dptr + flash_prefix, dptr + dest_prefix, flash_middle);
+		}
 	}
 
 	/* read prefix */
@@ -785,8 +851,9 @@ static inline nrfx_err_t read_non_aligned(const struct device *dev, int addr, vo
 
 		_qspi_wait_for_completion(dev, res);
 
-		if (res != NRFX_SUCCESS)
+		if (res != NRFX_SUCCESS) {
 			return res;
+		}
 
 		memcpy(dptr, buf + WORD_SIZE - flash_prefix, flash_prefix);
 	}
@@ -797,8 +864,9 @@ static inline nrfx_err_t read_non_aligned(const struct device *dev, int addr, vo
 
 		_qspi_wait_for_completion(dev, res);
 
-		if (res != NRFX_SUCCESS)
+		if (res != NRFX_SUCCESS) {
 			return res;
+		}
 
 		memcpy(dptr + flash_prefix + flash_middle, buf, flash_suffix);
 	}
@@ -808,17 +876,20 @@ static inline nrfx_err_t read_non_aligned(const struct device *dev, int addr, vo
 
 static int qspi_nor_read(const struct device *dev, int addr, void *dest, size_t size)
 {
-	if (!dest)
+	if (!dest) {
 		return -EINVAL;
+	}
 
 	/* read size must be non-zero */
-	if (!size)
+	if (!size) {
 		return 0;
+	}
 
 	int rc = qspi_device_init(dev);
 
-	if (rc != 0)
+	if (rc != 0) {
 		goto out;
+	}
 
 	qspi_lock(dev);
 
@@ -857,31 +928,35 @@ static inline nrfx_err_t write_sub_word(const struct device *dev, int addr, cons
 
 static int qspi_nor_write(const struct device *dev, int addr, const void *src, size_t size)
 {
-	if (!src)
+	if (!src) {
 		return -EINVAL;
+	}
 
 	/* write size must be non-zero, less than 4, or a multiple of 4 */
-	if ((size == 0) || ((size > 4) && ((size % 4U) != 0)))
+	if ((size == 0) || ((size > 4) && ((size % 4U) != 0))) {
 		return -EINVAL;
+	}
 
 	/* address must be 4-byte aligned */
-	if ((addr % 4U) != 0)
+	if ((addr % 4U) != 0) {
 		return -EINVAL;
+	}
 
 	nrfx_err_t res = NRFX_SUCCESS;
 
 	int rc = qspi_device_init(dev);
 
-	if (rc != 0)
+	if (rc != 0) {
 		goto out;
+	}
 
 	qspi_trans_lock(dev);
 
 	qspi_lock(dev);
 
-	if (size < 4U)
+	if (size < 4U) {
 		res = write_sub_word(dev, addr, src, size);
-	else {
+	} else {
 		res = _nrfx_qspi_write(src, size, addr);
 		_qspi_wait_for_completion(dev, res);
 	}
@@ -907,8 +982,9 @@ static int qspi_nor_configure(const struct device *dev)
 {
 	int ret = qspi_nrfx_configure(dev);
 
-	if (ret != 0)
+	if (ret != 0) {
 		return ret;
+	}
 
 	qspi_device_uninit(dev);
 
@@ -924,15 +1000,20 @@ static int qspi_nor_configure(const struct device *dev)
 static int qspi_nor_init(const struct device *dev)
 {
 #ifdef CONFIG_PINCTRL
-	int ret = pinctrl_apply_state(PINCTRL_DT_DEV_CONFIG_GET(QSPI_NODE), PINCTRL_STATE_DEFAULT);
+	int ret = pinctrl_apply_state(QSPI_IF_BUS_PINCTRL_DT_DEV_CONFIG_GET,
+				      PINCTRL_STATE_DEFAULT);
 
 	if (ret < 0) {
 		return ret;
 	}
 #endif
 
-	IRQ_CONNECT(DT_IRQN(QSPI_NODE), DT_IRQ(QSPI_NODE, priority), nrfx_isr,
-		    nrfx_qspi_irq_handler, 0);
+	IRQ_CONNECT(QSPI_IF_BUS_IRQN,
+		    QSPI_IF_BUS_IRQ_PRIO,
+		    nrfx_isr,
+		    nrfx_qspi_irq_handler,
+		    0);
+
 	return qspi_nor_configure(dev);
 }
 
@@ -948,13 +1029,15 @@ static int qspi_cmd_encryption(const struct device *dev, nrf_qspi_encryption_t *
 
 	int ret = qspi_device_init(dev);
 
-	if (ret == 0)
+	if (ret == 0) {
 		ret = qspi_send_cmd(dev, &cmd, false);
+	}
 
 	qspi_device_uninit(dev);
 
-	if (ret < 0)
+	if (ret < 0) {
 		LOG_DBG("cmd_encryption failed %d", ret);
+	}
 
 	return ret;
 }
@@ -982,8 +1065,9 @@ int qspi_RDSR2(const struct device *dev, uint8_t *rdsr2)
 
 	LOG_DBG("RDSR2 = 0x%x", sr);
 
-	if (ret == 0)
+	if (ret == 0) {
 		*rdsr2 = sr;
+	}
 
 	return ret;
 }
@@ -1027,8 +1111,9 @@ int qspi_RDSR1(const struct device *dev, uint8_t *rdsr1)
 
 	LOG_DBG("RDSR1 = 0x%x", sr);
 
-	if (ret == 0)
+	if (ret == 0) {
 		*rdsr1 = sr;
+	}
 
 	return ret;
 }
@@ -1074,13 +1159,15 @@ int qspi_WRSR2(const struct device *dev, uint8_t data)
 	};
 	int ret = qspi_device_init(dev);
 
-	if (ret == 0)
+	if (ret == 0) {
 		ret = qspi_send_cmd(dev, &cmd, false);
+	}
 
 	qspi_device_uninit(dev);
 
-	if (ret < 0)
+	if (ret < 0) {
 		LOG_ERR("cmd_wakeup RPU failed %d", ret);
+	}
 
 	return ret;
 }
@@ -1112,14 +1199,14 @@ int qspi_init(struct qspi_config *config)
 {
 	unsigned int rc;
 
-	qspi_config = config;
+	qspi_cfg = config;
 
 	config->readoc = config->quad_spi ? NRF_QSPI_READOC_READ4IO : NRF_QSPI_READOC_FASTREAD;
 	config->writeoc = config->quad_spi ? NRF_QSPI_WRITEOC_PP4IO : NRF_QSPI_WRITEOC_PP;
 
 	rc = qspi_nor_init(&qspi_perip);
 
-	k_sem_init(&qspi_config->lock, 1, 1);
+	k_sem_init(&qspi_cfg->lock, 1, 1);
 
 	return rc;
 }
@@ -1130,13 +1217,15 @@ void qspi_update_nonce(unsigned int addr, int len, int hlread)
 
 	NRF_QSPI_Type *p_reg = NRF_QSPI;
 
-	if (!qspi_config->encryption)
+	if (!qspi_cfg->encryption) {
 		return;
+	}
 
-	if (nonce_last_addr == 0 || hlread)
+	if (nonce_last_addr == 0 || hlread) {
 		p_reg->DMA_ENC.NONCE2 = ++nonce_cnt;
-	else if ((nonce_last_addr + 4) != addr)
+	} else if ((nonce_last_addr + 4) != addr) {
 		p_reg->DMA_ENC.NONCE2 = ++nonce_cnt;
+	}
 
 	nonce_last_addr = addr + len - 4;
 
@@ -1158,15 +1247,15 @@ int qspi_write(unsigned int addr, const void *data, int len)
 
 	qspi_addr_check(addr, data, len);
 
-	addr |= qspi_config->addrmask;
+	addr |= qspi_cfg->addrmask;
 
-	k_sem_take(&qspi_config->lock, K_FOREVER);
+	k_sem_take(&qspi_cfg->lock, K_FOREVER);
 
 	qspi_update_nonce(addr, len, 0);
 
 	status = qspi_nor_write(&qspi_perip, addr, data, len);
 
-	k_sem_give(&qspi_config->lock);
+	k_sem_give(&qspi_cfg->lock);
 
 	return status;
 }
@@ -1177,15 +1266,15 @@ int qspi_read(unsigned int addr, void *data, int len)
 
 	qspi_addr_check(addr, data, len);
 
-	addr |= qspi_config->addrmask;
+	addr |= qspi_cfg->addrmask;
 
-	k_sem_take(&qspi_config->lock, K_FOREVER);
+	k_sem_take(&qspi_cfg->lock, K_FOREVER);
 
 	qspi_update_nonce(addr, len, 0);
 
 	status = qspi_nor_read(&qspi_perip, addr, data, len);
 
-	k_sem_give(&qspi_config->lock);
+	k_sem_give(&qspi_cfg->lock);
 
 	return status;
 }
@@ -1196,7 +1285,7 @@ int qspi_hl_readw(unsigned int addr, void *data)
 	uint8_t *rxb = NULL;
 	uint32_t len = 4;
 
-	len = len + (4 * qspi_config->qspi_slave_latency);
+	len = len + (4 * qspi_cfg->qspi_slave_latency);
 
 	rxb = k_malloc(len);
 
@@ -1207,13 +1296,13 @@ int qspi_hl_readw(unsigned int addr, void *data)
 
 	memset(rxb, 0, len);
 
-	k_sem_take(&qspi_config->lock, K_FOREVER);
+	k_sem_take(&qspi_cfg->lock, K_FOREVER);
 
 	qspi_update_nonce(addr, 4, 1);
 
 	status = qspi_nor_read(&qspi_perip, addr, rxb, len);
 
-	k_sem_give(&qspi_config->lock);
+	k_sem_give(&qspi_cfg->lock);
 
 	*(uint32_t *)data = *(uint32_t *)(rxb + (len - 4));
 
@@ -1273,8 +1362,9 @@ int qspi_enable_encryption(uint8_t *key)
 #if defined(CONFIG_SOC_SERIES_NRF53X)
 	int err = 0;
 
-	if (qspi_config->encryption)
+	if (qspi_cfg->encryption) {
 		return -EALREADY;
+	}
 
 	int ret = qspi_device_init(&qspi_perip);
 
@@ -1283,21 +1373,21 @@ int qspi_enable_encryption(uint8_t *key)
 		return -EIO;
 	}
 
-	memcpy(qspi_config->p_cfg.key, key, 16);
+	memcpy(qspi_cfg->p_cfg.key, key, 16);
 
-	err = nrfx_qspi_dma_encrypt(&qspi_config->p_cfg);
+	err = nrfx_qspi_dma_encrypt(&qspi_cfg->p_cfg);
 	if (err != NRFX_SUCCESS) {
 		LOG_ERR("nrfx_qspi_dma_encrypt failed: %d", err);
 		return -EIO;
 	}
 
-	err = qspi_cmd_encryption(&qspi_perip, &qspi_config->p_cfg);
+	err = qspi_cmd_encryption(&qspi_perip, &qspi_cfg->p_cfg);
 	if (err != 0) {
 		LOG_ERR("qspi_cmd_encryption failed: %d", err);
 		return -EIO;
 	}
 
-	qspi_config->encryption = true;
+	qspi_cfg->encryption = true;
 
 	qspi_device_uninit(&qspi_perip);
 

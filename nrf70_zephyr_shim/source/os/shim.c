@@ -27,7 +27,7 @@
 #include "osal_ops.h"
 #include "qspi_if.h"
 
-LOG_MODULE_REGISTER(wifi_nrf, CONFIG_WIFI_NRF700X_SHIM_LOG_LEVEL);
+LOG_MODULE_REGISTER(wifi_nrf, CONFIG_WIFI_NRF70_SHIM_LOG_LEVEL);
 
 struct zep_shim_intr_priv *intr_priv;
 
@@ -388,7 +388,7 @@ out:
 	return pkt;
 }
 
-#if defined(CONFIG_NRF700X_RAW_DATA_RX) || defined(CONFIG_NRF700X_PROMISC_DATA_RX)
+#if defined(CONFIG_NRF70_RAW_DATA_RX) || defined(CONFIG_NRF70_PROMISC_DATA_RX)
 void *net_raw_pkt_from_nbuf(void *iface, void *frm,
 			    unsigned short raw_hdr_len,
 			    void *raw_rx_hdr,
@@ -441,7 +441,7 @@ out:
 
 	return pkt;
 }
-#endif /* CONFIG_NRF700X_RAW_DATA_RX || CONFIG_NRF700X_PROMISC_DATA_RX */
+#endif /* CONFIG_NRF70_RAW_DATA_RX || CONFIG_NRF70_PROMISC_DATA_RX */
 #endif /* CONFIG_NRF70_RADIO_TEST */
 
 static void *zep_shim_llist_node_alloc(void)
@@ -884,7 +884,7 @@ static unsigned int zep_shim_strlen(const void *str)
 	return strlen(str);
 }
 
-static const struct nrf_wifi_osal_ops nrf_wifi_os_zep_ops = {
+const struct nrf_wifi_osal_ops nrf_wifi_os_bm_ops = {
 	.mem_alloc = zep_shim_mem_alloc,
 	.mem_zalloc = zep_shim_mem_zalloc,
 	.mem_free = k_free,
@@ -975,8 +975,3 @@ static const struct nrf_wifi_osal_ops nrf_wifi_os_zep_ops = {
 	.strlen = zep_shim_strlen,
 	.rand8_get = sys_rand8_get,
 };
-
-const struct nrf_wifi_osal_ops *get_os_ops(void)
-{
-	return &nrf_wifi_os_zep_ops;
-}

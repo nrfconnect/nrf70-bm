@@ -10,34 +10,42 @@ if(NOT DEFINED ENV{ZEPHYR_BASE})
 endif()
 
 if (CONFIG_NRF70_BM_LIB)
+  set(NRF_WIFI_DIR ${ZEPHYR_NRF_WIFI_MODULE_DIR})
+  set(NRF_WIFI_BINS_DIR ${ZEPHYR_NRFXLIB_MODULE_DIR}/nrf_wifi/bin/zephyr)
+
+  add_subdirectory(${NRF_WIFI_DIR} nrf-wifi-osal)
+
   add_library(nrf70-bm-lib STATIC)
 
-  set(NRF_WIFI_DIR ${ZEPHYR_CURRENT_MODULE_DIR}/../nrfxlib/nrf_wifi)
 
   target_include_directories(nrf70-bm-lib PUBLIC
     include
-    # OS agnostic library
-    $<TARGET_PROPERTY:nrf-wifi,PUBLIC_INCLUDE_DIRECTORIES>
-    # Inlucde till the last directory to avoid using Zephyr in BM code
+    # Include till the last directory to avoid using Zephyr in BM code
     ${ZEPHYR_BASE}/include/zephyr
   )
 
   target_compile_definitions_ifndef(CONFIG_NRF70_RADIO_TEST
     nrf70-bm-lib
     PRIVATE
-    -DCONFIG_NRF_WIFI_FW_BIN=${NRF_WIFI_DIR}/fw_bins/scan_only/nrf70.bin
+    -DCONFIG_NRF_WIFI_FW_BIN=${NRF_WIFI_BINS_DIR}/scan_only/nrf70.bin
   )
 
   target_compile_definitions_ifdef(CONFIG_NRF70_RADIO_TEST
     nrf70-bm-lib
     PRIVATE
-    -DCONFIG_NRF_WIFI_FW_BIN=${NRF_WIFI_DIR}/fw_bins/radio_test/nrf70.bin
+    -DCONFIG_NRF_WIFI_FW_BIN=${NRF_WIFI_BINS_DIR}/radio_test/nrf70.bin
   )
 
   target_compile_definitions_ifdef(CONFIG_NRF70_RADIO_TEST
     nrf70-bm-lib
     PRIVATE
-    -DCONFIG_NRF700X_RADIO_TEST
+    -DCONFIG_NRF70_RADIO_TEST
+  )
+
+  target_compile_definitions_ifdef(CONFIG_NRF70_SCAN_ONLY
+    nrf70-bm-lib
+    PRIVATE
+    -DCONFIG_NRF70_SCAN_ONLY
   )
 
 
@@ -48,5 +56,5 @@ if (CONFIG_NRF70_BM_LIB)
     source/nrf70_bm_core.c
   )
 
-  target_link_libraries(nrf70-bm-lib PRIVATE nrf-wifi nrf70-zep-shim)
+  target_link_libraries(nrf70-bm-lib PRIVATE nrf70-zep-shim nrf-wifi-osal)
 endif()

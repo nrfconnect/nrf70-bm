@@ -13,15 +13,16 @@
 #include "fmac_api.h"
 #include "fmac_util.h"
 
-#ifdef CONFIG_NRF700X_BOARD_TYPE_DK
+#ifdef CONFIG_NRF70_BOARD_TYPE_DK
 #include "nrf70_tx_pwr_ceil_dk.h"
-#elif CONFIG_NRF700X_BOARD_TYPE_EK
+#elif CONFIG_NRF70_BOARD_TYPE_EK
 #include "nrf70_tx_pwr_ceil_ek.h"
 #else
 #error "Please prepare tx power ceiling header file for your board"
 #endif
 
 struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
+extern const struct nrf_wifi_osal_ops nrf_wifi_os_bm_ops;
 
 /* INCBIN macro Taken from https://gist.github.com/mmozeiko/ed9655cf50341553d282 */
 #define STR2(x) #x
@@ -113,8 +114,8 @@ static void reg_change_callbk_fn(void *vif_ctx,
 
 	fmac_dev_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
 
-	fmac_dev_ctx->reg_change = nrf_wifi_osal_mem_alloc(fmac_dev_ctx->fpriv->opriv,
-							   sizeof(struct nrf_wifi_event_regulatory_change));
+	fmac_dev_ctx->reg_change = nrf_wifi_osal_mem_alloc(
+		sizeof(struct nrf_wifi_event_regulatory_change));
 	if (!fmac_dev_ctx->reg_change) {
 		NRF70_LOG_ERR("%s: Failed to allocate memory for reg_change", __func__);
 		return;
@@ -287,56 +288,56 @@ void nrf_wifi_event_get_reg(void *vif_ctx,
 static void configure_tx_pwr_settings(struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr_ctrl_params,
 				struct nrf_wifi_tx_pwr_ceil_params *tx_pwr_ceil_params)
 {
-	tx_pwr_ctrl_params->ant_gain_2g = CONFIG_NRF700X_ANT_GAIN_2G;
-	tx_pwr_ctrl_params->ant_gain_5g_band1 = CONFIG_NRF700X_ANT_GAIN_5G_BAND1;
-	tx_pwr_ctrl_params->ant_gain_5g_band2 = CONFIG_NRF700X_ANT_GAIN_5G_BAND2;
-	tx_pwr_ctrl_params->ant_gain_5g_band3 = CONFIG_NRF700X_ANT_GAIN_5G_BAND3;
-	tx_pwr_ctrl_params->band_edge_2g_lo_dss = CONFIG_NRF700X_BAND_2G_LOWER_EDGE_BACKOFF_DSSS;
-	tx_pwr_ctrl_params->band_edge_2g_lo_ht = CONFIG_NRF700X_BAND_2G_LOWER_EDGE_BACKOFF_HT;
-	tx_pwr_ctrl_params->band_edge_2g_lo_he = CONFIG_NRF700X_BAND_2G_LOWER_EDGE_BACKOFF_HE;
-	tx_pwr_ctrl_params->band_edge_2g_hi_dsss = CONFIG_NRF700X_BAND_2G_UPPER_EDGE_BACKOFF_DSSS;
-	tx_pwr_ctrl_params->band_edge_2g_hi_ht = CONFIG_NRF700X_BAND_2G_UPPER_EDGE_BACKOFF_HT;
-	tx_pwr_ctrl_params->band_edge_2g_hi_he = CONFIG_NRF700X_BAND_2G_UPPER_EDGE_BACKOFF_HE;
+	tx_pwr_ctrl_params->ant_gain_2g = CONFIG_NRF70_ANT_GAIN_2G;
+	tx_pwr_ctrl_params->ant_gain_5g_band1 = CONFIG_NRF70_ANT_GAIN_5G_BAND1;
+	tx_pwr_ctrl_params->ant_gain_5g_band2 = CONFIG_NRF70_ANT_GAIN_5G_BAND2;
+	tx_pwr_ctrl_params->ant_gain_5g_band3 = CONFIG_NRF70_ANT_GAIN_5G_BAND3;
+	tx_pwr_ctrl_params->band_edge_2g_lo_dss = CONFIG_NRF70_BAND_2G_LOWER_EDGE_BACKOFF_DSSS;
+	tx_pwr_ctrl_params->band_edge_2g_lo_ht = CONFIG_NRF70_BAND_2G_LOWER_EDGE_BACKOFF_HT;
+	tx_pwr_ctrl_params->band_edge_2g_lo_he = CONFIG_NRF70_BAND_2G_LOWER_EDGE_BACKOFF_HE;
+	tx_pwr_ctrl_params->band_edge_2g_hi_dsss = CONFIG_NRF70_BAND_2G_UPPER_EDGE_BACKOFF_DSSS;
+	tx_pwr_ctrl_params->band_edge_2g_hi_ht = CONFIG_NRF70_BAND_2G_UPPER_EDGE_BACKOFF_HT;
+	tx_pwr_ctrl_params->band_edge_2g_hi_he = CONFIG_NRF70_BAND_2G_UPPER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_1_lo_ht =
-		CONFIG_NRF700X_BAND_UNII_1_LOWER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_1_LOWER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_1_lo_he =
-		CONFIG_NRF700X_BAND_UNII_1_LOWER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_1_LOWER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_1_hi_ht =
-		CONFIG_NRF700X_BAND_UNII_1_UPPER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_1_UPPER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_1_hi_he =
-		CONFIG_NRF700X_BAND_UNII_1_UPPER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_1_UPPER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2a_lo_ht =
-		CONFIG_NRF700X_BAND_UNII_2A_LOWER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_2A_LOWER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2a_lo_he =
-		CONFIG_NRF700X_BAND_UNII_2A_LOWER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_2A_LOWER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2a_hi_ht =
-		CONFIG_NRF700X_BAND_UNII_2A_UPPER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_2A_UPPER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2a_hi_he =
-		CONFIG_NRF700X_BAND_UNII_2A_UPPER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_2A_UPPER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2c_lo_ht =
-		CONFIG_NRF700X_BAND_UNII_2C_LOWER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_2C_LOWER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2c_lo_he =
-		CONFIG_NRF700X_BAND_UNII_2C_LOWER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_2C_LOWER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2c_hi_ht =
-		CONFIG_NRF700X_BAND_UNII_2C_UPPER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_2C_UPPER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_2c_hi_he =
-		CONFIG_NRF700X_BAND_UNII_2C_UPPER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_2C_UPPER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_3_lo_ht =
-		CONFIG_NRF700X_BAND_UNII_3_LOWER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_3_LOWER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_3_lo_he =
-		CONFIG_NRF700X_BAND_UNII_3_LOWER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_3_LOWER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_3_hi_ht =
-		CONFIG_NRF700X_BAND_UNII_3_UPPER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_3_UPPER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_3_hi_he =
-		CONFIG_NRF700X_BAND_UNII_3_UPPER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_3_UPPER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_4_lo_ht =
-		CONFIG_NRF700X_BAND_UNII_4_LOWER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_4_LOWER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_4_lo_he =
-		CONFIG_NRF700X_BAND_UNII_4_LOWER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_4_LOWER_EDGE_BACKOFF_HE;
 	tx_pwr_ctrl_params->band_edge_5g_unii_4_hi_ht =
-		CONFIG_NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF_HT;
+		CONFIG_NRF70_BAND_UNII_4_UPPER_EDGE_BACKOFF_HT;
 	tx_pwr_ctrl_params->band_edge_5g_unii_4_hi_he =
-		CONFIG_NRF700X_BAND_UNII_4_UPPER_EDGE_BACKOFF_HE;
+		CONFIG_NRF70_BAND_UNII_4_UPPER_EDGE_BACKOFF_HE;
 
 	/* Set power ceiling parameters */
 	tx_pwr_ceil_params->max_pwr_2g_dsss = MAX_PWR_2G_DSSS;
@@ -355,11 +356,11 @@ static void configure_tx_pwr_settings(struct nrf_wifi_tx_pwr_ctrl_params *tx_pwr
 
 static void configure_board_dep_params(struct nrf_wifi_board_params *board_params)
 {
-	board_params->pcb_loss_2g = CONFIG_NRF700X_PCB_LOSS_2G;
+	board_params->pcb_loss_2g = CONFIG_NRF70_PCB_LOSS_2G;
 #ifndef CONFIG_NRF70_2_4G_ONLY
-	board_params->pcb_loss_5g_band1 = CONFIG_NRF700X_PCB_LOSS_5G_BAND1;
-	board_params->pcb_loss_5g_band2 = CONFIG_NRF700X_PCB_LOSS_5G_BAND2;
-	board_params->pcb_loss_5g_band3 = CONFIG_NRF700X_PCB_LOSS_5G_BAND3;
+	board_params->pcb_loss_5g_band1 = CONFIG_NRF70_PCB_LOSS_5G_BAND1;
+	board_params->pcb_loss_5g_band2 = CONFIG_NRF70_PCB_LOSS_5G_BAND2;
+	board_params->pcb_loss_5g_band3 = CONFIG_NRF70_PCB_LOSS_5G_BAND3;
 #endif /* CONFIG_NRF70_2_4G_ONLY */
 }
 
@@ -384,11 +385,11 @@ int nrf70_fmac_init(void)
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
 	int sleep_type = -1;
 
-#ifndef CONFIG_NRF700X_RADIO_TEST
+#ifndef CONFIG_NRF70_RADIO_TEST
 	sleep_type = HW_SLEEP_ENABLE;
 #else
 	sleep_type = SLEEP_DISABLE;
-#endif /* CONFIG_NRF700X_RADIO_TEST */
+#endif /* CONFIG_NRF70_RADIO_TEST */
 #endif /* CONFIG_NRF_WIFI_LOW_POWER */
 
 #ifndef CONFIG_NRF70_RADIO_TEST
@@ -415,6 +416,8 @@ int nrf70_fmac_init(void)
 	//callbk_fns.scan_abort_callbk_fn = nrf_wifi_event_proc_scan_abort_zep;
 	callbk_fns.disp_scan_res_callbk_fn = nrf_wifi_event_proc_disp_scan_res_zep;
 #endif /* CONFIG_NRF70_RADIO_TEST */
+
+	nrf_wifi_osal_init(&nrf_wifi_os_bm_ops);
 
 #ifndef CONFIG_NRF70_RADIO_TEST
 	// Initialize the FMAC module
@@ -475,7 +478,8 @@ int nrf70_fmac_init(void)
 					enable_bf,
 					&tx_pwr_ctrl_params,
 					&tx_pwr_ceil_params,
-					&board_params);
+					&board_params,
+					STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
 #else
 	status = nrf_wifi_fmac_dev_init_rt(rpu_ctx,
 #ifdef CONFIG_NRF_WIFI_LOW_POWER
@@ -486,7 +490,8 @@ int nrf70_fmac_init(void)
 					enable_bf,
 					&tx_pwr_ctrl_params,
 					&tx_pwr_ceil_params,
-					&board_params);
+					&board_params,
+					STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
 #endif /* CONFIG_NRF70_RADIO_TEST */
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("Failed to initialize device\n");
@@ -497,18 +502,18 @@ int nrf70_fmac_init(void)
 
 	return 0;
 deinit:
+	nrf_wifi_osal_deinit();
 	nrf70_fmac_deinit();
 err:
 	return -1;
 }
 
 #ifdef CONFIG_NRF70_RANDOM_MAC_ADDRESS
-static void generate_random_mac_address(void *opriv,
-					uint8_t *mac_addr)
+static void generate_random_mac_address(uint8_t *mac_addr)
 {
 	// For simplicty use Zephyr API to generate random number
 	for (int i = 0; i < 6; i++) {
-		mac_addr[i] = nrf_wifi_osal_rand8_get(opriv);
+		mac_addr[i] = nrf_wifi_osal_rand8_get();
 	}
 
 	// Set the locally administered bit (bit 1 of the first byte)
@@ -526,7 +531,6 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
 #ifdef CONFIG_NRF70_OTP_MAC_ADDRESS
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
 #endif /* CONFIG_NRF70_OTP_MAC_ADDRESS */
-	struct nrf_wifi_fmac_priv *fmac_priv = nrf70_bm_priv.fmac_priv;
 	unsigned char mac_addr_str[13];
 #ifdef CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED
 	int ret;
@@ -547,7 +551,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
 	}
 
 
-	ret = nrf_wifi_utils_hex_str_to_val(nrf70_bm_priv.fmac_priv->opriv,
+	ret = nrf_wifi_utils_hex_str_to_val(
 					    fixed_mac_addr,
 					    NR70_MAC_ADDR_LEN,
 					    CONFIG_NRF70_FIXED_MAC_ADDRESS);
@@ -560,7 +564,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
 
 	memcpy(vif->mac_addr, fixed_mac_addr, NR70_MAC_ADDR_LEN);
 #elif CONFIG_NRF70_RANDOM_MAC_ADDRESS
-	generate_random_mac_address(nrf70_bm_priv.fmac_priv->opriv, vif->mac_addr);
+	generate_random_mac_address(vif->mac_addr);
 #elif CONFIG_NRF70_OTP_MAC_ADDRESS
 	status = nrf_wifi_fmac_otp_mac_addr_get(rpu_ctx,
 											vif->vif_idx,
@@ -573,8 +577,7 @@ enum nrf_wifi_status nrf_wifi_get_mac_addr(struct nrf70_wifi_vif_bm *vif,
 #endif
 mac_addr_check:
 	nrf70_bm_mac_txt(vif->mac_addr, mac_addr_str, sizeof(mac_addr_str));
-	if (!nrf_wifi_utils_is_mac_addr_valid(fmac_priv->opriv,
-	    vif->mac_addr)) {
+	if (!nrf_wifi_utils_is_mac_addr_valid(vif->mac_addr)) {
 		NRF70_LOG_ERR("%s: Invalid MAC address: %s",
 			__func__,
 			mac_addr_str);
@@ -784,7 +787,7 @@ int nrf70_fmac_deinit(void)
 		nrf_wifi_fmac_deinit_rt(nrf70_bm_priv.fmac_priv);
 	}
 #endif /* CONFIG_NRF70_RADIO_TEST */
-
+	nrf_wifi_osal_deinit();
 	nrf70_bm_priv.fmac_priv = NULL;
 	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = NULL;
 

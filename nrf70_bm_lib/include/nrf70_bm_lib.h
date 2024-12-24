@@ -281,7 +281,7 @@ struct nrf70_regulatory_info {
  */
 int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info);
 
-#if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
+#if !defined(CONFIG_NRF70_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Start scanning for WiFi networks.
  *
  * If all the bands and channels as specified in the scan parameters are scanned, the
@@ -328,7 +328,7 @@ int nrf70_bm_set_reg(struct nrf70_regulatory_info *reg_info);
  * @retval -1 If the operation failed. *
  */
 int nrf70_bm_get_reg(struct nrf70_regulatory_info *reg_info);
-#endif /* CONFIG_NRF700X_RADIO_TEST */
+#endif /* CONFIG_NRF70_RADIO_TEST */
 
 /**@brief Clean up the WiFi module.
  *
@@ -347,7 +347,7 @@ int nrf70_bm_deinit(void);
  */
 void nrf70_bm_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
 
-#if !defined(CONFIG_NRF700X_RADIO_TEST) || defined(__DOXYGEN__)
+#if !defined(CONFIG_NRF70_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Get the nRF70 statistics.
  *
  * This function retrieves the statistics of the nRF70 device for UMAC, LMAc and PHY.

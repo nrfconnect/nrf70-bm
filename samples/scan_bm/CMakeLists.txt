@@ -9,8 +9,11 @@ cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(nrf70_scan_bm)
 
+set(NRF70_BM_DIR ../../nrf70_bm_lib)
+
 target_include_directories(app PRIVATE
-  $<TARGET_PROPERTY:nrf70-bm-lib,INTERFACE_INCLUDE_DIRECTORIES>
+  src
+  ${NRF70_BM_DIR}/include
 )
 
 target_sources(
