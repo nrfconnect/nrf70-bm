@@ -166,4 +166,8 @@ config WIFI_MGMT_SCAN_CHAN_MAX_MANUAL
 	default 12
 endif
 
+config NRF70_DEBUG_SHELL
+	bool "Enable debug shell"
+	help
+	  Enable debug shell for the sample.
 endmenu

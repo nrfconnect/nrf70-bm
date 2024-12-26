@@ -23,4 +23,16 @@ target_sources(
   src/utils.c
 )
 
+if(DEFINED CONFIG_NRF70_DEBUG_SHELL)
+  target_include_directories(app PRIVATE
+    $<TARGET_PROPERTY:nrf-wifi-osal,INTERFACE_INCLUDE_DIRECTORIES>
+  )
+
+  target_sources(
+    app
+    PRIVATE
+    src/wifi_util.c
+  )
+endif()
+
 target_link_libraries(app PRIVATE nrf70-bm-lib)
