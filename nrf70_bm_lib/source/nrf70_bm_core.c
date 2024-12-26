@@ -114,6 +114,17 @@ static void reg_change_callbk_fn(void *vif_ctx,
 
 	fmac_dev_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
 
+	if (!fmac_dev_ctx) {
+		NRF70_LOG_ERR("%s: Invalid FMAC device context", __func__);
+		return;
+	}
+
+	if (!fmac_dev_ctx->waiting_for_reg_event) {
+		NRF70_LOG_DBG("%s: Unsolicited regulatory change event", __func__);
+		/* TODO: Handle unsolicited regulatory change event */
+		return;
+	}
+
 	fmac_dev_ctx->reg_change = nrf_wifi_osal_mem_alloc(
 		sizeof(struct nrf_wifi_event_regulatory_change));
 	if (!fmac_dev_ctx->reg_change) {
