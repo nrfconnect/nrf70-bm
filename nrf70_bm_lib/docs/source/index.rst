@@ -14,6 +14,7 @@ Welcome to the nRF70 Bare Metal library documentation!
    nrf70_bm_porting_guide
    nrf70_bm_api
    nrf70_bm_lib_migration_guide
+   samples
 
 
 Indices and tables
