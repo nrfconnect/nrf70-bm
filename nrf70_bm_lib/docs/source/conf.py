@@ -20,7 +20,8 @@ extensions = [
 
 breathe_projects = {
     'nrf70_bm_lib': '../xml',
-    'nrfxlib': '../xml'
+    'nrfxlib': '../xml',
+    'nrf_wifi': '../xml',
 }
 breathe_default_project = 'nrf70_bm_lib'
 breathe_domain_by_extension = {"h": "c", "c": "c"}
