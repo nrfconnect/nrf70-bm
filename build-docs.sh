@@ -12,6 +12,7 @@ generate_doxygen_xml() {
 # Function to build Sphinx documentation
 build_sphinx_docs() {
     echo "Building Sphinx documentation..."
+    make clean
     make html
 }
 
