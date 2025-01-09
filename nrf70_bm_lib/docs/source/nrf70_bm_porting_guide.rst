@@ -165,7 +165,7 @@ The nRF70 Series BM driver uses the following compiler options and linker flags 
 The compiler used is ``Zephyr SDK`` which uses ``arm-zephyr-eabi-gcc``. For more information, visit the `Zephyr SDK documentation <https://docs.zephyrproject.org/latest/develop/toolchains/zephyr_sdk.html>`_.
 
 Compiler options
-================
+----------------
 
 Below is an example of the compiler options used by the nRF70 Series BM driver from `compile_commands.json` in the ``build`` directory:
 
@@ -205,7 +205,7 @@ Below is an example of the compiler options used by the nRF70 Series BM driver f
   }
 
 Linker flags
-============
+------------
 
 Below is an example of the linker flags used by the nRF70 Series BM driver from `build.ninja` and `CMakeFiles/rules.ninja` in the ``build`` directory:
 
