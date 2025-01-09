@@ -135,7 +135,7 @@ Reference header file structure
 
 
 nRF70 OS agnostic layers API documentation
-==========================================
+******************************************
 
 The nRF70 Series OS agnostic layers are documented along with the APIs.
 The below modules are part of the nRF70 Series OS agnostic layer:
