@@ -101,6 +101,12 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 		NRF70_LOG_ERR("Failed to initialize FMAC module");
 		goto err;
 	}
+
+	ret = nrf70_fmac_add_vif_sta(mac_addr);
+	if (ret) {
+		NRF70_LOG_ERR("Failed to add STA VIF");
+		goto deinit;
+	}
 #ifndef CONFIG_NRF70_RADIO_TEST
 	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
 	if (!reg_info_curr.chan_info) {
@@ -133,12 +139,6 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 			NRF70_LOG_ERR("Failed to set regulatory info");
 			goto deinit;
 		}
-	}
-
-	ret = nrf70_fmac_add_vif_sta(mac_addr);
-	if (ret) {
-		NRF70_LOG_ERR("Failed to add STA VIF");
-		goto deinit;
 	}
 #endif /* CONFIG_NRF70_RADIO_TEST */
 	return 0;
