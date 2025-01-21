@@ -21,6 +21,9 @@ manifest:
           - cmsis
           - cmsis-dsp
           - cmsis-nn
+          - trusted-firmware-m
+          - mbedtls
+          - mcuboot
         name-blacklist:
           - nrf_wifi
     # nRF70 Wi-Fi OSAL library
