@@ -11,15 +11,15 @@
 #include <nrf_wifi_radio_test_shell.h>
 #include <util.h>
 
-#include "fmac_api_common.h"
-#include <nrf70_bm_core.h>
+#include "radio_test/fmac_api.h"
+#include <radio_test/nrf70_bm_core.h>
 
 #ifdef CONFIG_ZEPHYR_SHELL
 struct shell *shell_global;
 #endif /* CONFIG_ZEPHYR_SHELL */
 
-extern struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
-struct nrf70_wifi_ctx_bm *ctx = &nrf70_bm_priv.rpu_ctx_bm;
+extern struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_priv;
+struct nrf70_bm_rt_wifi_ctx *ctx = &nrf70_bm_priv.rpu_ctx_bm;
 
 static bool check_test_in_prog() {
   if (ctx->conf_params.rx) {

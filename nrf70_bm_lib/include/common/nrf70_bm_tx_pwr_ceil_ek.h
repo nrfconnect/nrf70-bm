@@ -9,6 +9,8 @@
  * @brief nRF7002 EK TX power ceiling configuration.
  */
 
+#ifndef NRF70_BM_TX_PWR_CEIL_EK_H__
+#define NRF70_BM_TX_PWR_CEIL_EK_H__
 /**
  * The configuration applies to the nRF7002 EK shield targets, as well as
  * to shield targets for nRF7001 and nRF7000 IC variants emulated on the
@@ -29,3 +31,5 @@
 #define MAX_PWR_5G_MID_MCS7 0x34
 #define MAX_PWR_5G_HIGH_MCS0 0x30
 #define MAX_PWR_5G_HIGH_MCS7 0x30
+
+#endif /* NRF70_BM_TX_PWR_CEIL_EK_H__ */

@@ -23,6 +23,9 @@
  * @addtogroup nrf70_bm_txpower nRF70 Bare Metal library
  */
 
+#ifndef NRF70_BM_TX_PWR_CEIL_DK_H__
+#define NRF70_BM_TX_PWR_CEIL_DK_H__
+
 /** Maximum power for 2.4 GHz DSSS. */
 #define MAX_PWR_2G_DSSS 0x54
 /** Maximum power for 2.4 GHz MCS0. */
@@ -41,3 +44,5 @@
 #define MAX_PWR_5G_HIGH_MCS0 0x34
 /** Maximum power for 5 GHz high band (5670-5895 MHz) MCS7. */
 #define MAX_PWR_5G_HIGH_MCS7 0x34
+
+#endif /* NRF70_BM_TX_PWR_CEIL_DK_H__ */

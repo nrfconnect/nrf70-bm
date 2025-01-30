@@ -17,7 +17,7 @@
 #include <zephyr/kernel.h>
 
 #include "utils.h"
-#include "nrf70_bm_lib.h"
+#include "system/nrf70_bm_lib.h"
 
 #define CHECK_RET(func) do { \
 	ret = func; \
@@ -35,7 +35,7 @@ bool debug_enabled;
 unsigned int scan_result_cnt;
 bool is_scan_done;
 
-void scan_result_cb(struct nrf70_scan_result *entry)
+void scan_result_cb(struct nrf70_bm_sys_scan_result *entry)
 {
 	unsigned char bssid_str[18];
 
@@ -50,16 +50,16 @@ void scan_result_cb(struct nrf70_scan_result *entry)
 		   "Num", "SSID", "Chan (Band)", "RSSI", "Security", "BSSID", "MFP");
 	}
 
-	nrf70_bm_mac_txt(entry->bssid, bssid_str, sizeof(bssid_str));
+	nrf70_bm_sys_mac_txt(entry->bssid, bssid_str, sizeof(bssid_str));
 	printf("%-4d | %-32s | %-4u (%-6s) | %-4d | %-15s | %-17s | %-8s\n",
 		   scan_result_cnt, entry->ssid, entry->channel,
-		   nrf70_band_txt(entry->band),
+		   nrf70_bm_sys_band_txt(entry->band),
 		   entry->rssi,
-		   nrf70_security_txt(entry->security),
+		   nrf70_bm_sys_security_txt(entry->security),
 		   bssid_str,
-		   nrf70_mfp_txt(entry->mfp));
+		   nrf70_bm_sys_mfp_txt(entry->mfp));
 }
-static int prepare_scan_params(struct nrf70_scan_params *params)
+static int prepare_scan_params(struct nrf70_bm_sys_scan_params *params)
 {
 	int band_str_len = sizeof(CONFIG_WIFI_SCAN_BANDS_LIST);
 
@@ -82,7 +82,7 @@ static int prepare_scan_params(struct nrf70_scan_params *params)
 
 	if (sizeof(CONFIG_WIFI_SCAN_CHAN_LIST) - 1) {
 		if (wifi_utils_parse_scan_chan(CONFIG_WIFI_SCAN_CHAN_LIST,
-						(struct nrf70_band_channel *)params->band_chan,
+						(struct nrf70_bm_sys_band_channel *)params->band_chan,
 						ARRAY_SIZE(params->band_chan))) {
 			printf("Incorrect value(s) in CONFIG_WIFI_SCAN_CHAN_LIST: %s\n",
 					CONFIG_WIFI_SCAN_CHAN_LIST);
@@ -102,13 +102,13 @@ static int prepare_scan_params(struct nrf70_scan_params *params)
 	return 0;
 }
 
-static int dump_regulatory_info(struct nrf70_regulatory_info *reg_info)
+static int dump_regulatory_info(struct nrf70_bm_regulatory_info *reg_info)
 {
 	int ret;
 
 	printf("Getting regulatory information...\n");
-	memset(reg_info->chan_info, 0, sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
-	ret = nrf70_bm_get_reg(reg_info);
+	memset(reg_info->chan_info, 0, sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
+	ret = nrf70_bm_sys_get_reg(reg_info);
 	if (ret) {
 		printf("Failed to get regulatory info: %d\n", ret);
 		return -1;
@@ -132,8 +132,8 @@ static int dump_regulatory_info(struct nrf70_regulatory_info *reg_info)
 
 int main(void)
 {
-	struct nrf70_scan_params scan_params = { 0 };
-	struct nrf70_regulatory_info reg_info = { 0 };
+	struct nrf70_bm_sys_scan_params scan_params = { 0 };
+	struct nrf70_bm_regulatory_info reg_info = { 0 };
 	int ret;
 	int scan_count = 1;
 
@@ -143,9 +143,9 @@ int main(void)
 	reg_info.force = true;
 
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_bm_init(NULL, &reg_info));
+	CHECK_RET(nrf70_bm_sys_init(NULL, &reg_info));
 
-	reg_info.chan_info = malloc(sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
+	reg_info.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
 	if (!reg_info.chan_info) {
 		printf("Failed to allocate memory for regulatory info\n");
 		ret = -ENOMEM;
@@ -163,7 +163,7 @@ int main(void)
 		// Start scanning for WiFi networks
 		is_scan_done = false;
 		printf("Starting %d scan...\n", scan_count);
-		CHECK_RET(nrf70_bm_scan_start(&scan_params, scan_result_cb));
+		CHECK_RET(nrf70_bm_sys_scan_start(&scan_params, scan_result_cb));
 
 		// Wait for the scan to complete or timeout
 		unsigned int timeout = 30000;
@@ -192,7 +192,7 @@ int main(void)
 			memcpy(reg_info.country_code, new_domain, 2);
 			reg_info.force = true;
 			printf("Switching to regulatory domain: %s\n", reg_info.country_code);
-			CHECK_RET(nrf70_bm_set_reg(&reg_info));
+			CHECK_RET(nrf70_bm_sys_set_reg(&reg_info));
 			CHECK_RET(dump_regulatory_info(&reg_info));
 		}
 
@@ -201,7 +201,7 @@ int main(void)
 	}
 
 	// Clean up the WiFi module
-	CHECK_RET(nrf70_bm_deinit());
+	CHECK_RET(nrf70_bm_sys_deinit());
 
 	ret = 0;
 

@@ -19,7 +19,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#include "nrf70_bm_lib.h"
+#include "system/nrf70_bm_lib.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,7 +111,7 @@ int wifi_utils_parse_scan_ssids(char *scan_ssids_str,
  * @retval -errno value in case of failure.
  */
 int wifi_utils_parse_scan_chan(char *scan_chan_str,
-			       struct nrf70_band_channel *chan,
+			       struct nrf70_bm_sys_band_channel *chan,
 			       uint8_t max_channels);
 
 

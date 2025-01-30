@@ -8,19 +8,17 @@
  * @brief nRF70 Bare Metal library.
  */
 
-#include "nrf70_bm_lib.h"
-#include "nrf70_bm_core.h"
-
+#include "system/nrf70_bm_lib.h"
+#include "system/nrf70_bm_core.h"
 #include "util.h"
 
-#ifndef CONFIG_NRF70_RADIO_TEST
 /* Overlay struct to avoid dynamic memory allocation */
 typedef struct  __attribute__((packed)) scan_info_overlay {
 	struct nrf_wifi_umac_scan_info scan_info;
 	unsigned int center_frequency[NRF70_SCAN_CHAN_MAX_MANUAL];
 } scan_info_overlay_t;
 
-const char *nrf70_security_txt(enum nrf70_security_type security)
+const char *nrf70_bm_sys_security_txt(enum nrf70_bm_sys_security_type security)
 {
 	switch (security) {
 	case NRF70_SECURITY_TYPE_NONE:
@@ -45,7 +43,7 @@ const char *nrf70_security_txt(enum nrf70_security_type security)
 	}
 }
 
-const char *nrf70_mfp_txt(enum nrf70_mfp_options mfp)
+const char *nrf70_bm_sys_mfp_txt(enum nrf70_bm_sys_mfp_options mfp)
 {
 	switch (mfp) {
 	case NRF70_MFP_DISABLE:
@@ -60,7 +58,7 @@ const char *nrf70_mfp_txt(enum nrf70_mfp_options mfp)
 	}
 }
 
-const char *nrf70_band_txt(enum nrf70_frequency_bands band)
+const char *nrf70_bm_sys_band_txt(enum nrf70_bm_sys_freq_bands band)
 {
 	switch (band) {
 	case NRF70_FREQ_BAND_2_4_GHZ:
@@ -75,7 +73,7 @@ const char *nrf70_band_txt(enum nrf70_frequency_bands band)
 	}
 }
 
-static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands band)
+static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_bm_sys_freq_bands band)
 {
 	switch (band) {
 	case NRF70_FREQ_BAND_2_4_GHZ:
@@ -86,36 +84,33 @@ static enum nrf_wifi_band nrf_wifi_map_band_to_rpu(enum nrf70_frequency_bands ba
 		return NRF_WIFI_BAND_INVALID;
 	}
 }
-#endif /* CONFIG_NRF70_RADIO_TEST */
 
-int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
+int nrf70_bm_sys_init(uint8_t *mac_addr,
+		      struct nrf70_bm_regulatory_info *reg_info)
 {
 	int ret;
-#ifndef CONFIG_NRF70_RADIO_TEST
-	struct nrf70_regulatory_info reg_info_curr = { 0 };
-#endif /* CONFIG_NRF70_RADIO_TEST */
+	struct nrf70_bm_regulatory_info reg_info_curr = { 0 };
 
 	// Initialize the WiFi module
-	ret = nrf70_fmac_init();
+	ret = nrf70_bm_sys_fmac_init();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module");
 		goto err;
 	}
 
-#ifndef CONFIG_NRF70_RADIO_TEST
-	ret = nrf70_fmac_add_vif_sta(mac_addr);
+	ret = nrf70_bm_sys_fmac_add_vif_sta(mac_addr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to add STA VIF");
 		goto deinit;
 	}
-	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_reg_chan_info) * NRF70_MAX_CHANNELS);
+	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
 	if (!reg_info_curr.chan_info) {
 		printf("Failed to allocate memory for regulatory info\n");
 		ret = -1;
 		goto deinit;
 	}
 
-	ret = nrf70_fmac_get_reg(&reg_info_curr);
+	ret = nrf70_bm_sys_fmac_get_reg(&reg_info_curr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to get regulatory info");
 		goto deinit;
@@ -134,36 +129,55 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info)
 	}
 
 	if (reg_info) {
-		ret = nrf70_fmac_set_reg(reg_info);
+		ret = nrf70_bm_sys_fmac_set_reg(reg_info);
 		if (ret) {
 			NRF70_LOG_ERR("Failed to set regulatory info");
 			goto deinit;
 		}
 	}
-#endif /* CONFIG_NRF70_RADIO_TEST */
 	return 0;
-#ifndef CONFIG_NRF70_RADIO_TEST
+
 deinit:
 	free(reg_info_curr.chan_info);
-	nrf70_fmac_deinit();
-#endif /* CONFIG_NRF70_RADIO_TEST */
+	nrf70_bm_sys_fmac_deinit();
 err:
 	return ret;
 }
 
-#ifndef CONFIG_NRF70_RADIO_TEST
-int nrf70_bm_set_reg(struct nrf70_regulatory_info *reg_info)
+int nrf70_bm_sys_deinit(void)
 {
-	return nrf70_fmac_set_reg(reg_info);
+	int ret = -1;
+
+	ret = nrf70_bm_sys_fmac_del_vif_sta();
+	if (ret) {
+		NRF70_LOG_ERR("Failed to delete STA VIF");
+		goto err;
+	}
+
+	// Clean up the WiFi module
+	ret = nrf70_bm_sys_fmac_deinit();
+	if (ret) {
+		NRF70_LOG_ERR("Failed to deinitialize FMAC module");
+		goto err;
+	}
+
+	return 0;
+err:
+	return ret;
 }
 
-int nrf70_bm_get_reg(struct nrf70_regulatory_info *reg_info)
+int nrf70_bm_sys_set_reg(struct nrf70_bm_regulatory_info *reg_info)
 {
-	return nrf70_fmac_get_reg(reg_info);
+	return nrf70_bm_sys_fmac_set_reg(reg_info);
 }
 
-int nrf70_bm_scan_start(struct nrf70_scan_params *params,
-					 nrf70_scan_result_cb_t cb)
+int nrf70_bm_sys_get_reg(struct nrf70_bm_regulatory_info *reg_info)
+{
+	return nrf70_bm_sys_fmac_get_reg(reg_info);
+}
+
+int nrf70_bm_sys_scan_start(struct nrf70_bm_sys_scan_params *params,
+			    nrf70_bm_sys_scan_result_cb_t cb)
 {
 	// Start scanning for WiFi networks
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
@@ -178,7 +192,7 @@ int nrf70_bm_scan_start(struct nrf70_scan_params *params,
 	uint16_t num_scan_channels = 0;
 	int ret = -1;
 	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
-	struct nrf70_wifi_vif_bm *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
 	struct nrf_wifi_fmac_priv *fmac_priv = nrf70_bm_priv.fmac_priv;
 
 	if (!params) {
@@ -340,40 +354,15 @@ err:
 	return ret;
 }
 
-bool nrf70_scan_done(void)
+bool nrf70_bm_sys_scan_done(void)
 {
-	struct nrf70_wifi_vif_bm *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
 
 	return vif->scan_done;
 }
-#endif /* CONFIG_NRF70_RADIO_TEST */
 
-int nrf70_bm_deinit(void)
-{
-	int
 
-#ifndef CONFIG_NRF70_RADIO_TEST
-	ret = nrf70_fmac_del_vif_sta();
-	if (ret) {
-		NRF70_LOG_ERR("Failed to delete STA VIF");
-		goto err;
-	}
-#endif /* CONFIG_NRF70_RADIO_TEST */
-
-	// Clean up the WiFi module
-	ret = nrf70_fmac_deinit();
-	if (ret) {
-		NRF70_LOG_ERR("Failed to deinitialize FMAC module");
-		goto err;
-	}
-
-	return 0;
-err:
-	return ret;
-}
-
-#ifndef CONFIG_NRF70_RADIO_TEST
-int nrf70_bm_dump_stats(const char *type)
+int nrf70_bm_sys_dump_stats(const char *type)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct rpu_sys_op_stats stats;
@@ -773,4 +762,16 @@ int nrf70_bm_dump_stats(const char *type)
 
 	return 0;
 }
-#endif /* CONFIG_NRF70_RADIO_TEST */
+
+void nrf70_bm_sys_mac_txt(const unsigned char *mac,
+			  char *mac_str,
+			  size_t size)
+{
+	if (size < 18) {
+		// Handle error: buffer too small
+		return;
+	}
+
+	snprintf(mac_str, size, "%02X:%02X:%02X:%02X:%02X:%02X",
+			 mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+}

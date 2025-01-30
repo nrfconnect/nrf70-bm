@@ -9,8 +9,8 @@
  * @defgroup nrf70_bm nRF70 Bare Metal library
  */
 
-#ifndef NRF70_BM_H__
-#define NRF70_BM_H__
+#ifndef NRF70_BM_SYS_LIB_H__
+#define NRF70_BM_SYS_LIB_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,32 +19,9 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "common/nrf70_bm_lib.h"
 
-/** @brief Log levels */
-#if CONFIG_NRF70_BM_LOG_LEVEL > 0
-#define NRF70_LOG_ERR(...) printf(__VA_ARGS__); printf("\n")
-#else
-#define NRF70_LOG_ERR(...)
-#endif
-
-#if CONFIG_NRF70_BM_LOG_LEVEL > 1
-#define NRF70_LOG_WRN(...) printf(__VA_ARGS__); printf("\n")
-#else
-#define NRF70_LOG_WRN(...)
-#endif
-
-#if CONFIG_NRF70_BM_LOG_LEVEL > 2
-#define NRF70_LOG_INF(...) printf(__VA_ARGS__); printf("\n")
-#else
-#define NRF70_LOG_INF(...)
-#endif
-
-#if CONFIG_NRF70_BM_LOG_LEVEL > 3
-#define NRF70_LOG_DBG(...) printf(__VA_ARGS__); printf("\n")
-#else
-#define NRF70_LOG_DBG(...)
-#endif
-
+extern struct nrf70_bm_sys_wifi_drv_priv nrf70_bm_priv;
 
 #define NR70_SCAN_SSID_MAX_LEN 33
 #define NR70_MAC_ADDR_LEN 6
@@ -66,7 +43,7 @@ extern "C" {
 #define NRF70_MAX_CHANNELS ( 14 + 30 )
 
 /** @brief IEEE 802.11 security types. */
-enum nrf70_security_type {
+enum nrf70_bm_sys_security_type {
 	/** No security. */
 	NRF70_SECURITY_TYPE_NONE = 0,
 	/** WPA2-PSK security. */
@@ -94,10 +71,10 @@ enum nrf70_security_type {
 };
 
 /** Helper function to get user-friendly security type name. */
-const char *nrf70_security_txt(enum nrf70_security_type security);
+const char *nrf70_bm_sys_security_txt(enum nrf70_bm_sys_security_type security);
 
 /** @brief IEEE 802.11w - Management frame protection. */
-enum nrf70_mfp_options {
+enum nrf70_bm_sys_mfp_options {
 	/** MFP disabled. */
 	NRF70_MFP_DISABLE = 0,
 	/** MFP optional. */
@@ -113,12 +90,12 @@ enum nrf70_mfp_options {
 };
 
 /** Helper function to get user-friendly MFP name.*/
-const char *nrf70_mfp_txt(enum nrf70_mfp_options mfp);
+const char *nrf70_bm_sys_mfp_txt(enum nrf70_bm_sys_mfp_options mfp);
 
 /**
  * @brief IEEE 802.11 operational frequency bands (not exhaustive).
  */
-enum nrf70_frequency_bands {
+enum nrf70_bm_sys_freq_bands {
 	/** 2.4 GHz band. */
 	NRF70_FREQ_BAND_2_4_GHZ = 0,
 	/** 5 GHz band. */
@@ -135,18 +112,10 @@ enum nrf70_frequency_bands {
 };
 
 /** Helper function to get user-friendly frequency band name. */
-const char *nrf70_band_txt(enum nrf70_frequency_bands band);
-
-/** @brief nRF70 version structure. */
-struct nrf70_version {
-	/** Driver version */
-	const char *drv_version;
-	/** Firmware version */
-	const char *fw_version;
-};
+const char *nrf70_bm_sys_band_txt(enum nrf70_bm_sys_freq_bands band);
 
 /** @brief Wi-Fi scanning types. */
-enum nrf70_scan_type {
+enum nrf70_bm_sys_scan_type {
 	/** Active scanning (default) - two probe requests are sent on each channel. */
 	NRF70_SCAN_TYPE_ACTIVE = 0,
 	/** Passive scanning. */
@@ -156,7 +125,7 @@ enum nrf70_scan_type {
 /**
  * @brief Wi-Fi structure to uniquely identify a band-channel pair
  */
-struct nrf70_band_channel {
+struct nrf70_bm_sys_band_channel {
 	/** Frequency band */
 	uint8_t band;
 	/** Channel */
@@ -168,17 +137,17 @@ struct nrf70_band_channel {
  * Used to specify parameters which can control how the Wi-Fi scan
  * is performed.
  */
-struct nrf70_scan_params {
-	/** Scan type, see enum nrf70_scan_type.
+struct nrf70_bm_sys_scan_params {
+	/** Scan type, see enum nrf70_bm_sys_scan_type.
 	 *
 	 * The scan_type is only a hint to the underlying Wi-Fi chip for the
 	 * preferred mode of scan. The actual mode of scan can depend on factors
 	 * such as the Wi-Fi chip implementation support, regulatory domain
 	 * restrictions etc.
 	 */
-	enum nrf70_scan_type scan_type;
+	enum nrf70_bm_sys_scan_type scan_type;
 	/** Bitmap of bands to be scanned.
-	 *  Refer to ::nrf70_frequency_bands for bit position of each band.
+	 *  Refer to ::nrf70_bm_sys_freq_bands for bit position of each band.
 	 */
 	uint8_t bands;
 	/** Active scan dwell time (in ms) on a channel - default 50ms */
@@ -210,13 +179,13 @@ struct nrf70_scan_params {
 	 *  not conforming to regulatory restrictions etc. The invoker of the API should
 	 *  ensure that the channels specified follow regulatory rules.
 	 */
-	struct nrf70_band_channel band_chan[NRF70_SCAN_CHAN_MAX_MANUAL];
+	struct nrf70_bm_sys_band_channel band_chan[NRF70_SCAN_CHAN_MAX_MANUAL];
 };
 
 /** @brief Wi-Fi scan result, each result is provided to the net_mgmt_event_callback
  * via its info attribute (see net_mgmt.h)
  */
-struct nrf70_scan_result {
+struct nrf70_bm_sys_scan_result {
 	/** SSID */
 	uint8_t ssid[NR70_SCAN_SSID_MAX_LEN];
 	/** SSID length */
@@ -226,9 +195,9 @@ struct nrf70_scan_result {
 	/** Channel */
 	uint8_t channel;
 	/** Security type */
-	enum nrf70_security_type security;
+	enum nrf70_bm_sys_security_type security;
 	/** MFP options */
-	enum nrf70_mfp_options mfp;
+	enum nrf70_bm_sys_mfp_options mfp;
 	/** RSSI */
 	int8_t rssi;
 	/** BSSID */
@@ -239,37 +208,13 @@ struct nrf70_scan_result {
  *
  * @param[in] entry Scan result entry. NULL if scan is done.
  */
-typedef void (*nrf70_scan_result_cb_t)(struct nrf70_scan_result *entry);
+typedef void (*nrf70_bm_sys_scan_result_cb_t)(struct nrf70_bm_sys_scan_result *entry);
 
-/** @brief Per-channel regulatory attributes */
-struct nrf70_reg_chan_info {
-	/** Center frequency in MHz */
-	unsigned short center_frequency;
-	/** Maximum transmission power (in dBm) */
-	unsigned short max_power:8;
-	/** Is channel supported or not */
-	unsigned short supported:1;
-	/** Passive transmissions only */
-	unsigned short passive_only:1;
-	/** Is a DFS channel */
-	unsigned short dfs:1;
-};
 
-/** @brief Regulatory information */
-struct nrf70_regulatory_info {
-	/** Country code - ISO/IEC 3166-1 alpha-2 */
-	char country_code[2];
-	/** Force - ignore 802.11d beacon hints (only used in SET) */
-	bool force;
-	/** Number of channels supported (only used in GET) */
-	unsigned int num_channels;
-	/** Channels information (only used in GET) */
-	struct nrf70_reg_chan_info *chan_info;
-};
-
-/**@brief Initialize the WiFi module.
+/**@brief Initialize the WiFi module in system mode of operation.
  *
- * This function initializes the nRF70 device and prepares it for operation.
+ * This function initializes the nRF70 device and prepares it for operation in
+ * the system mode.
  * This also includes powering up the device and setting up the necessary
  * configurations including the download of the firmware patch for nRF70 device.
  *
@@ -279,9 +224,18 @@ struct nrf70_regulatory_info {
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
  */
-int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info);
+int nrf70_bm_sys_init(uint8_t *mac_addr, struct nrf70_bm_regulatory_info *reg_info);
 
-#if !defined(CONFIG_NRF70_RADIO_TEST) || defined(__DOXYGEN__)
+/**@brief Clean up the WiFi module in system mode of operation.
+ *
+ * This function de-initializes the nRF70 device, operating in the system
+ * mode of operation, free up resources and powers it down.
+ * Any further operations on the device will require re-initialization.
+ *
+ * @retval 0 If the operation was successful.
+ */
+int nrf70_bm_sys_deinit(void);
+
 /**@brief Start scanning for WiFi networks.
  *
  * If all the bands and channels as specified in the scan parameters are scanned, the
@@ -300,8 +254,8 @@ int nrf70_bm_init(uint8_t *mac_addr, struct nrf70_regulatory_info *reg_info);
  * @retval -EIO If the operation failed.
  * @retval -ENOMEM If there is not enough memory to start the scan.
  */
-int nrf70_bm_scan_start(struct nrf70_scan_params *scan_params,
-					 nrf70_scan_result_cb_t cb);
+int nrf70_bm_sys_scan_start(struct nrf70_bm_sys_scan_params *scan_params,
+			    nrf70_bm_sys_scan_result_cb_t cb);
 
 /** @brief Set nRF70 regulatory information.
  *
@@ -314,7 +268,7 @@ int nrf70_bm_scan_start(struct nrf70_scan_params *scan_params,
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
  */
-int nrf70_bm_set_reg(struct nrf70_regulatory_info *reg_info);
+int nrf70_bm_sys_set_reg(struct nrf70_bm_regulatory_info *reg_info);
 
 /** @brief Get nRF70 regulatory information.
  *
@@ -327,17 +281,8 @@ int nrf70_bm_set_reg(struct nrf70_regulatory_info *reg_info);
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed. *
  */
-int nrf70_bm_get_reg(struct nrf70_regulatory_info *reg_info);
-#endif /* CONFIG_NRF70_RADIO_TEST */
+int nrf70_bm_sys_get_reg(struct nrf70_bm_regulatory_info *reg_info);
 
-/**@brief Clean up the WiFi module.
- *
- * This function de-initializes the nRF70 device, free up resources and powers it down.
- * Any further operations on the device will require re-initialization.
- *
- * @retval 0 If the operation was successful.
- */
-int nrf70_bm_deinit(void);
 
 /**@brief Convert a MAC address to a string.
  *
@@ -345,9 +290,10 @@ int nrf70_bm_deinit(void);
  * @param[out] mac_str MAC address string.
  * @param[in] size Size of the MAC address string.
  */
-void nrf70_bm_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
+void nrf70_bm_sys_mac_txt(const unsigned char *mac,
+			  char *mac_str,
+			  size_t size);
 
-#if !defined(CONFIG_NRF70_RADIO_TEST) || defined(__DOXYGEN__)
 /**@brief Get the nRF70 statistics.
  *
  * This function retrieves the statistics of the nRF70 device for UMAC, LMAc and PHY.
@@ -358,8 +304,7 @@ void nrf70_bm_mac_txt(const unsigned char *mac, char *mac_str, size_t size);
  * @retval -EINVAL If the type is invalid.
  * @retval -EIO If the operation failed.
  */
-int nrf70_bm_dump_stats(const char *type);
-#endif
+int nrf70_bm_sys_dump_stats(const char *type);
 
 #ifdef __cplusplus
 }

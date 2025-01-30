@@ -6,7 +6,7 @@
 
 #include <zephyr/kernel.h>
 
-#include "nrf70_bm_lib.h"
+#include "radio_test/nrf70_bm_lib.h"
 #include "nrf_wifi_radio_test_shell.h"
 
 #define CHECK_RET(func) do { \
@@ -31,7 +31,7 @@ int main(void)
 #endif
 
 	// Initialize the WiFi module
-	CHECK_RET(nrf70_bm_init(NULL, NULL));
+	CHECK_RET(nrf70_bm_rt_init());
 
 	printf("Initialized WiFi module, ready for radio test\n");
 
@@ -43,7 +43,7 @@ int main(void)
 
 cleanup:
 	if (ret) {
-		nrf70_bm_deinit();
+		nrf70_bm_rt_deinit();
 		printf("Exiting WiFi radio test sample application with error: %d\n", ret);
 	}
 	return ret;

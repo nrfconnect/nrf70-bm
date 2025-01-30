@@ -22,9 +22,9 @@ static const uint8_t valid_5g_chans_20mhz[] = {32, 36, 40, 44, 48, 52, 56, 60, 6
 	104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 149, 153, 157, 159, 161,
 	163, 165, 167, 169, 171, 173, 175, 177};
 
-static enum nrf70_frequency_bands wifi_utils_map_band_str_to_idx(char *band_str)
+static enum nrf70_bm_sys_freq_bands wifi_utils_map_band_str_to_idx(char *band_str)
 {
-	enum nrf70_frequency_bands band = NRF70_FREQ_BAND_UNKNOWN;
+	enum nrf70_bm_sys_freq_bands band = NRF70_FREQ_BAND_UNKNOWN;
 
 	if (!strcmp(band_str, "2")) {
 		band = NRF70_FREQ_BAND_2_4_GHZ;
@@ -99,7 +99,7 @@ bool wifi_utils_validate_chan(uint8_t band,
 
 static int wifi_utils_get_all_chans_in_range(uint8_t chan_start,
 		uint8_t chan_end,
-		struct nrf70_band_channel *band_chan,
+		struct nrf70_bm_sys_band_channel *band_chan,
 		uint8_t band_idx,
 		uint8_t *chan_idx)
 {
@@ -219,7 +219,7 @@ int wifi_utils_parse_scan_bands(char *scan_bands_str, uint8_t *band_map)
 	char parse_str[NRF70_BAND_STR_SIZE_MAX + 1];
 	char *band_str = NULL;
 	char *ctx = NULL;
-	enum nrf70_frequency_bands band = NRF70_FREQ_BAND_UNKNOWN;
+	enum nrf70_bm_sys_freq_bands band = NRF70_FREQ_BAND_UNKNOWN;
 	int len;
 
 	if (!scan_bands_str) {
@@ -290,12 +290,12 @@ int wifi_utils_parse_scan_ssids(char *scan_ssids_str,
 
 
 int wifi_utils_parse_scan_chan(char *scan_chan_str,
-			       struct nrf70_band_channel *band_chan,
+			       struct nrf70_bm_sys_band_channel *band_chan,
 			       uint8_t max_channels)
 {
 	char band_str[NRF70_MAX_BAND_STR_LEN] = {0};
 	char chan_str[NRF70_MAX_CHAN_STR_LEN] = {0};
-	enum nrf70_frequency_bands band = NRF70_FREQ_BAND_UNKNOWN;
+	enum nrf70_bm_sys_freq_bands band = NRF70_FREQ_BAND_UNKNOWN;
 	uint16_t band_str_start_idx = 0;
 	uint16_t chan_str_start_idx = 0;
 	uint8_t chan_idx = 0;

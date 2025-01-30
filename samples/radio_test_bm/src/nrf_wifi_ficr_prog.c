@@ -10,7 +10,7 @@
 
 #include <zephyr/logging/log.h>
 #include <zephyr/kernel.h>
-#include "rpu_if.h"
+#include "common/rpu_if.h"
 #include "rpu_hw_if.h"
 #include "nrf_wifi_ficr_prog.h"
 

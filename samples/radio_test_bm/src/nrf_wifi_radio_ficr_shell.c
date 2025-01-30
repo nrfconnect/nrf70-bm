@@ -10,13 +10,13 @@
 
 #include <nrf_wifi_radio_test_shell.h>
 #include <util.h>
-#include <nrf70_bm_core.h>
+#include <radio_test/nrf70_bm_core.h>
 
 #include "nrf_wifi_ficr_prog.h"
-#include "fmac_api_common.h"
+#include "common/fmac_api_common.h"
 
-extern struct nrf70_wifi_drv_priv_bm nrf70_bm_priv;
-static struct nrf70_wifi_ctx_bm *ctx = &nrf70_bm_priv.rpu_ctx_bm;
+extern struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_priv;
+static struct nrf70_bm_rt_wifi_ctx *ctx = &nrf70_bm_priv.rpu_ctx_bm;
 
 static void disp_location_status(char *region, unsigned int ret) {
   switch (ret) {
