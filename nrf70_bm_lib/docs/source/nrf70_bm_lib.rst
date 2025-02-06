@@ -80,6 +80,16 @@ Design essentials
 The nRF70 BM library is designed to be portable to any platform and OS environment.
 The following design essentials are important to understand when porting the library to a third-party platform.
 
+Modes of operation
+******************
+
+The nRF70 BM library supports two modes of operation:
+
+* **Scan only**: The library is configured to perform Wi-Fi scans only in this mode.
+* **Radio test**: The library is configured to perform radio tests only in this mode, primarily for production/manufacturing use.
+
+The above modes can also be combined into a single build configuration, allowing the user to switch between the two modes at runtime.
+
 MAC address configuration
 *************************
 

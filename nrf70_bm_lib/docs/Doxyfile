@@ -864,11 +864,13 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ../include/nrf70_bm_lib.h \
-                         ../include/nrf70_tx_pwr_ceil_dk.h \
-                         ../../../modules/lib//nrf_wifi/fw_if/umac_if/inc \
-                         ../../../modules/lib//nrf_wifi/fw_if/umac_if/inc/radio_test \
-                         ../../../modules/lib//nrf_wifi/fw_if/umac_if/inc/default
+INPUT                  = ../include/common/nrf70_bm_lib.h \
+                         ../include/system/nrf70_bm_lib.h \
+                         ../include/radio_test/nrf70_bm_lib.h \
+                         ../include/common/nrf70_bm_tx_pwr_ceil_dk.h \
+                         ../../../modules/lib/nrf_wifi/fw_if/umac_if/inc/common \
+                         ../../../modules/lib/nrf_wifi/fw_if/umac_if/inc/radio_test \
+                         ../../../modules/lib/nrf_wifi/fw_if/umac_if/inc/system
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses

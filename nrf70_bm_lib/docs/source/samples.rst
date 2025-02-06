@@ -20,3 +20,8 @@ Radio test
 
 The Radio test sample demonstrates how to use the Nordic Semiconductor's Wi-Fi® chipset to test the radio functionality.
 For more information, see https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/samples/wifi/radio_test/README.html
+
+Scan and Radio test combo
++++++++++++++++++++++++++
+
+The Scan and Radio test combo sample demonstrates how to switch between the Scan and Radio test operational modes at runtime.

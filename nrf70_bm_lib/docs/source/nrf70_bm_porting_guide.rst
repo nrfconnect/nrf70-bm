@@ -117,9 +117,9 @@ The reference header files are located in the `nrf70_bm_lib/include` directory.
 
 The following files are used to configure the TX power ceilings for the official Nordic development and evaluation boards:
 
-- `nrf70_tx_pwr_ceil_dk.h`: Contains the TX power configuration for the nRF7002 Development Kit (DK).
+- `nrf70_bm_tx_pwr_ceil_dk.h`: Contains the TX power configuration for the nRF7002 Development Kit (DK).
 
-- `nrf70_tx_pwr_ceil_ek.h`: Contains the TX power configuration for the nRF7002 Evaluation Kit (EK).
+- `nrf70_bm_tx_pwr_ceil_ek.h`: Contains the TX power configuration for the nRF7002 Evaluation Kit (EK).
 
 For a new nRF70-based PCB design, the developer may create a new header file with the same structure as the reference files and replace the values with the appropriate values for the designed PCB.
 The appropriate TX power ceiling values may be derived by running the radio test sample on the board and using a spectrum/vector signal analyzer to measure the output power, spectral mask, EVM and other parameters and then adjusting the TX power ceiling values to meet the requirements.
@@ -131,7 +131,7 @@ For more information on TX power calculation, refer to the section `nRF70 TX pow
 Reference header file structure
 -------------------------------
 
-.. doxygenfile:: nrf70_tx_pwr_ceil_dk.h
+.. doxygenfile:: nrf70_bm_tx_pwr_ceil_dk.h
 
 
 nRF70 OS agnostic layers API documentation

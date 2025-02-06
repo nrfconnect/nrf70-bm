@@ -91,6 +91,7 @@ The source directory structure shall look like this:
     samples/              # Sample applications
       radio_test_bm/      # Radio test sample application
       scan_bm/            # Scan sample application
+      scan_rt_bm/         # Scan and Radio test combo sample application
     nrf70_zephyr_shim/    # Zephyr shim for nRF70, reference for third-party boards
 
 
@@ -130,7 +131,7 @@ To build the documentation in a Linux environment, follow the below steps:
     Build the documentation using the following command:
 
     ```sh
-    ./build_docs.sh
+    ./build-docs.sh
     ```
 
     The generated HTML files will be available in `nrf70_bm_lib/docs/build/html`.
@@ -141,11 +142,13 @@ To build the documentation in a Linux environment, follow the below steps:
 Example code
 ============
 
-The repository includes two sample applications for testing and evaluation of the nRF70 Bare Metal library:
+The repository includes the below sample applications for the testing and the evaluation of the nRF70 Bare Metal library:
 
 1. `BM radio test` sample to perform basic RF testing of the nRF70 Series device, as well as
     Factory Information Configuration Registers (FICR) programming.
 
 2. `BM scan` sample to test Wi-Fi SSID scanning with the nRF70 Series devices.
 
-Both samples can be found under the ``samples/`` directory. The samples can be built using `west`, as explained above.
+3. `BM scan and radio test combo` sample to demonstrate runtime switching capability between scan and radio test operational modes for the BM library
+
+The samples can be found under the ``samples/`` directory. The samples can be built using `west`, as explained above.
