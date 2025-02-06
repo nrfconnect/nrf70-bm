@@ -12,7 +12,7 @@
 #include "radio_test/fmac_api.h"
 #include "common/fmac_util.h"
 
-struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_priv;
+struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_rt_priv;
 extern const struct nrf_wifi_osal_ops nrf_wifi_os_bm_ops;
 INCBIN(_bin, nrf70_bm_rt_fw, STR(CONFIG_NRF_WIFI_RT_FW_BIN));
 
@@ -20,7 +20,7 @@ int nrf70_bm_rt_fmac_init(void)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	unsigned int fw_ver = 0;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx;
 	struct nrf_wifi_tx_pwr_ctrl_params tx_pwr_ctrl_params = { 0 };
 	/* TODO: Hardcoded to 10 dBm, take as parameter */
 	struct nrf_wifi_tx_pwr_ceil_params tx_pwr_ceil_params;
@@ -35,22 +35,22 @@ int nrf70_bm_rt_fmac_init(void)
 
 	nrf_wifi_osal_init(&nrf_wifi_os_bm_ops);
 
-	nrf70_bm_priv.fmac_priv = nrf_wifi_rt_fmac_init();
+	nrf70_bm_rt_priv.fmac_priv = nrf_wifi_rt_fmac_init();
 
-	if (!nrf70_bm_priv.fmac_priv) {
+	if (!nrf70_bm_rt_priv.fmac_priv) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module\n");
 		goto err;
 	}
 
-	rpu_ctx = nrf_wifi_rt_fmac_dev_add(nrf70_bm_priv.fmac_priv,
-					   &nrf70_bm_priv.rpu_ctx_bm);
+	rpu_ctx = nrf_wifi_rt_fmac_dev_add(nrf70_bm_rt_priv.fmac_priv,
+					   &nrf70_bm_rt_priv.rpu_ctx_bm);
 
 	if (!rpu_ctx) {
 		NRF70_LOG_ERR("Failed to add device\n");
 		goto deinit;
 	}
 
-	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = rpu_ctx;
+	nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx = rpu_ctx;
 
 	status = nrf70_bm_rt_fw_load(rpu_ctx);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -110,18 +110,18 @@ int nrf70_bm_rt_fmac_deinit(void)
 {
 	NRF70_LOG_DBG("Deinitializing FMAC module");
 
-	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
-		nrf_wifi_rt_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
-		nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	if (nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx) {
+		nrf_wifi_rt_fmac_dev_deinit(nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx);
+		nrf_wifi_fmac_dev_rem(nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx);
 	}
 
-	if (nrf70_bm_priv.fmac_priv) {
-		nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+	if (nrf70_bm_rt_priv.fmac_priv) {
+		nrf_wifi_fmac_deinit(nrf70_bm_rt_priv.fmac_priv);
 	}
 
 	nrf_wifi_osal_deinit();
-	nrf70_bm_priv.fmac_priv = NULL;
-	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = NULL;
+	nrf70_bm_rt_priv.fmac_priv = NULL;
+	nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx = NULL;
 
 	NRF70_LOG_DBG("FMAC module deinitialized");
 

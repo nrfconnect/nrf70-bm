@@ -191,9 +191,9 @@ int nrf70_bm_sys_scan_start(struct nrf70_bm_sys_scan_params *params,
 	uint8_t k = 0;
 	uint16_t num_scan_channels = 0;
 	int ret = -1;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
-	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
-	struct nrf_wifi_fmac_priv *fmac_priv = nrf70_bm_priv.fmac_priv;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_sys_priv.rpu_ctx_bm.vifs[0];
+	struct nrf_wifi_fmac_priv *fmac_priv = nrf70_bm_sys_priv.fmac_priv;
 
 	if (!params) {
 		NRF70_LOG_DBG("No scan parameters provided, using default values");
@@ -356,7 +356,7 @@ err:
 
 bool nrf70_bm_sys_scan_done(void)
 {
-	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_sys_priv.rpu_ctx_bm.vifs[0];
 
 	return vif->scan_done;
 }
@@ -367,7 +367,7 @@ int nrf70_bm_sys_dump_stats(const char *type)
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct rpu_sys_op_stats stats;
 	enum rpu_stats_type stats_type = RPU_STATS_TYPE_ALL;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 
 	if (!strcmp(type, "umac")) {
 		stats_type = RPU_STATS_TYPE_UMAC;

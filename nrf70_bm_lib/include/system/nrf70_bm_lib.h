@@ -21,7 +21,7 @@ extern "C" {
 #include <stdio.h>
 #include "common/nrf70_bm_lib.h"
 
-extern struct nrf70_bm_sys_wifi_drv_priv nrf70_bm_priv;
+extern struct nrf70_bm_sys_wifi_drv_priv nrf70_bm_sys_priv;
 
 #define NR70_SCAN_SSID_MAX_LEN 33
 #define NR70_MAC_ADDR_LEN 6

@@ -13,7 +13,7 @@
 #include "system/fmac_api.h"
 #include "common/fmac_util.h"
 
-struct nrf70_bm_sys_wifi_drv_priv nrf70_bm_priv;
+struct nrf70_bm_sys_wifi_drv_priv nrf70_bm_sys_priv;
 extern const struct nrf_wifi_osal_ops nrf_wifi_os_bm_ops;
 INCBIN(_bin, nrf70_bm_sys_fw, STR(CONFIG_NRF_WIFI_SYS_FW_BIN));
 
@@ -38,7 +38,7 @@ static enum nrf_wifi_status nrf70_bm_sys_get_mac_addr(struct nrf70_bm_sys_wifi_v
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 #ifdef CONFIG_NRF70_OTP_MAC_ADDRESS
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 #endif /* CONFIG_NRF70_OTP_MAC_ADDRESS */
 	unsigned char mac_addr_str[13];
 #ifdef CONFIG_NRF70_FIXED_MAC_ADDRESS_ENABLED
@@ -110,7 +110,7 @@ static void reg_change_callbk_fn(void *vif_ctx,
 
 	NRF70_LOG_DBG("Regulatory change event received");
 
-	fmac_dev_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	fmac_dev_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 
 	if (!fmac_dev_ctx) {
 		NRF70_LOG_ERR("%s: Invalid FMAC device context", __func__);
@@ -149,7 +149,7 @@ static void nrf_wifi_event_proc_scan_done_zep(void *vif_ctx,
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf70_bm_sys_wifi_vif *vif = vif_ctx;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 	NRF70_LOG_DBG("Scan done event received");
 
 	status = nrf_wifi_sys_fmac_scan_res_get(rpu_ctx,
@@ -274,7 +274,7 @@ static void nrf70_bm_event_get_reg(void *vif_ctx,
 		   get_reg_event->nrf_wifi_alpha2[0],
 		   get_reg_event->nrf_wifi_alpha2[1]);
 
-	fmac_dev_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	fmac_dev_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 
 	if (fmac_dev_ctx->alpha2_valid) {
 		NRF70_LOG_ERR("%s: Unsolicited regulatory get!", __func__);
@@ -301,9 +301,9 @@ int nrf70_bm_sys_fmac_init(void)
 	struct nrf_wifi_fmac_callbk_fns callbk_fns = { 0 };
 	struct nrf_wifi_data_config_params data_config = { 0 };
 	struct rx_buf_pool_params rx_buf_pools[MAX_NUM_OF_RX_QUEUES] = { 0 };
-	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_sys_priv.rpu_ctx_bm.vifs[0];
 	unsigned int fw_ver = 0;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 	struct nrf_wifi_tx_pwr_ctrl_params tx_pwr_ctrl_params = { 0 };
 	/* TODO: Hardcoded to 10 dBm, take as parameter */
 	struct nrf_wifi_tx_pwr_ceil_params tx_pwr_ceil_params;
@@ -336,22 +336,22 @@ int nrf70_bm_sys_fmac_init(void)
 	nrf_wifi_osal_init(&nrf_wifi_os_bm_ops);
 
 	// Initialize the FMAC module
-	nrf70_bm_priv.fmac_priv = nrf_wifi_sys_fmac_init(&data_config,
+	nrf70_bm_sys_priv.fmac_priv = nrf_wifi_sys_fmac_init(&data_config,
 							 rx_buf_pools,
 							 &callbk_fns);
-	if (!nrf70_bm_priv.fmac_priv) {
+	if (!nrf70_bm_sys_priv.fmac_priv) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module\n");
 		goto err;
 	}
 
-	rpu_ctx = nrf_wifi_sys_fmac_dev_add(nrf70_bm_priv.fmac_priv,
-					   &nrf70_bm_priv.rpu_ctx_bm);
+	rpu_ctx = nrf_wifi_sys_fmac_dev_add(nrf70_bm_sys_priv.fmac_priv,
+					   &nrf70_bm_sys_priv.rpu_ctx_bm);
 	if (!rpu_ctx) {
 		NRF70_LOG_ERR("Failed to add device\n");
 		goto deinit;
 	}
 
-	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = rpu_ctx;
+	nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx = rpu_ctx;
 
 	status = nrf70_bm_sys_fw_load(rpu_ctx);
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
@@ -412,8 +412,8 @@ int nrf70_bm_sys_fmac_add_vif_sta(uint8_t *mac_addr)
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_umac_add_vif_info add_vif_info;
 	struct nrf_wifi_umac_chg_vif_state_info vif_info;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
-	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_sys_priv.rpu_ctx_bm.vifs[0];
 
 	if (!rpu_ctx) {
 		NRF70_LOG_ERR("%s: RPU context is NULL", __func__);
@@ -475,8 +475,8 @@ int nrf70_bm_sys_fmac_del_vif_sta(void)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
 	struct nrf_wifi_umac_chg_vif_state_info vif_info;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
-	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_priv.rpu_ctx_bm.vifs[0];
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf70_bm_sys_wifi_vif *vif = &nrf70_bm_sys_priv.rpu_ctx_bm.vifs[0];
 
 	if (!rpu_ctx) {
 		NRF70_LOG_ERR("%s: RPU context is NULL", __func__);
@@ -509,7 +509,7 @@ err:
 int nrf70_bm_sys_fmac_get_reg(struct nrf70_bm_regulatory_info *reg_info)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 	struct nrf_wifi_fmac_reg_info reg_info_fmac = { 0 };
 	struct nrf70_bm_reg_chan_info *tmp_chan_info_out = NULL;
 	struct nrf_wifi_get_reg_chn_info *tmp_chan_info_in = NULL;
@@ -557,7 +557,7 @@ err:
 int nrf70_bm_sys_fmac_set_reg(struct nrf70_bm_regulatory_info *reg_info)
 {
 	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
-	void *rpu_ctx = nrf70_bm_priv.rpu_ctx_bm.rpu_ctx;
+	void *rpu_ctx = nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx;
 	struct nrf_wifi_fmac_reg_info reg_info_fmac = { 0 };
 
 	if (!rpu_ctx) {
@@ -583,21 +583,21 @@ int nrf70_bm_sys_fmac_deinit(void)
 {
 	NRF70_LOG_DBG("Deinitializing FMAC module");
 
-	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
-		nrf_wifi_sys_fmac_dev_deinit(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	if (nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx) {
+		nrf_wifi_sys_fmac_dev_deinit(nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx);
 	}
 
-	if (nrf70_bm_priv.rpu_ctx_bm.rpu_ctx) {
-		nrf_wifi_fmac_dev_rem(nrf70_bm_priv.rpu_ctx_bm.rpu_ctx);
+	if (nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx) {
+		nrf_wifi_fmac_dev_rem(nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx);
 	}
 
-	if (nrf70_bm_priv.fmac_priv) {
-		nrf_wifi_fmac_deinit(nrf70_bm_priv.fmac_priv);
+	if (nrf70_bm_sys_priv.fmac_priv) {
+		nrf_wifi_fmac_deinit(nrf70_bm_sys_priv.fmac_priv);
 	}
 
 	nrf_wifi_osal_deinit();
-	nrf70_bm_priv.fmac_priv = NULL;
-	nrf70_bm_priv.rpu_ctx_bm.rpu_ctx = NULL;
+	nrf70_bm_sys_priv.fmac_priv = NULL;
+	nrf70_bm_sys_priv.rpu_ctx_bm.rpu_ctx = NULL;
 
 	NRF70_LOG_DBG("FMAC module deinitialized");
 

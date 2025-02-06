@@ -363,26 +363,20 @@ config NRF_WIFI_DISPLAY_SCAN_BSS_LIMIT
 	# Display scan BSS entries limit
 	# By default, the limit is 250 in scan-only mode and 150 in regular mode.
 	int "Display scan bss limit"
-	range 1 450 if NRF70_SCAN_ONLY
-	def_int 250 if NRF70_SCAN_ONLY
+	range 1 450 if NRF70_BM_SCAN_ONLY
+	def_int 250 if NRF70_BM_SCAN_ONLY
 	range 1 160
 	def_int 150
 	help
 	  Number of BSS entries in scan result.
 
-choice NRF70_OPER_MODES
-	bool "nRF70 operating modes"
-	default NRF70_SCAN_ONLY
-	help
-	  Select the operating mode of the nRF70 driver
-
-config NRF70_SCAN_ONLY
+config NRF70_BM_SCAN_ONLY
 	bool "nRF70 scan only mode"
+	default y
 	help
 	  Select this option to enable scan only mode of the nRF70 driver
 
-config NRF70_RADIO_TEST
+config NRF70_BM_RADIO_TEST
 	bool "Radio test mode of the nRF70 driver"
-endchoice
 
 endmenu

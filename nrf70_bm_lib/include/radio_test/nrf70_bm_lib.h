@@ -21,7 +21,7 @@ extern "C" {
 #include <stdio.h>
 #include "radio_test/nrf70_bm_core.h"
 
-extern struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_priv;
+extern struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_rt_priv;
 
 /**@brief Initialize the WiFi module in the radio test mode of operation.
  *

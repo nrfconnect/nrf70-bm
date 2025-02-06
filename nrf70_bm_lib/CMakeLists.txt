@@ -24,28 +24,28 @@ if (CONFIG_NRF70_BM_LIB)
     ${ZEPHYR_BASE}/include/zephyr
   )
 
-  target_compile_definitions_ifdef(CONFIG_NRF70_SCAN_ONLY
+  target_compile_definitions_ifdef(CONFIG_NRF70_BM_SCAN_ONLY
     nrf70-bm-lib
     PRIVATE
     -DCONFIG_NRF_WIFI_SYS_FW_BIN=${NRF_WIFI_BINS_DIR}/scan_only/nrf70.bin
   )
 
-  target_compile_definitions_ifdef(CONFIG_NRF70_RADIO_TEST
+  target_compile_definitions_ifdef(CONFIG_NRF70_BM_RADIO_TEST
     nrf70-bm-lib
     PRIVATE
     -DCONFIG_NRF_WIFI_RT_FW_BIN=${NRF_WIFI_BINS_DIR}/radio_test/nrf70.bin
   )
 
-  target_compile_definitions_ifdef(CONFIG_NRF70_RADIO_TEST
+  target_compile_definitions_ifdef(CONFIG_NRF70_BM_RADIO_TEST
     nrf70-bm-lib
     PRIVATE
-    -DCONFIG_NRF70_RADIO_TEST
+    -DCONFIG_NRF70_BM_RADIO_TEST
   )
 
-  target_compile_definitions_ifdef(CONFIG_NRF70_SCAN_ONLY
+  target_compile_definitions_ifdef(CONFIG_NRF70_BM_SCAN_ONLY
     nrf70-bm-lib
     PRIVATE
-    -DCONFIG_NRF70_SCAN_ONLY
+    -DCONFIG_NRF70_BM_SCAN_ONLY
   )
 
 
@@ -55,7 +55,7 @@ if (CONFIG_NRF70_BM_LIB)
     source/common/nrf70_bm_core.c
   )
 
-if(CONFIG_NRF70_RADIO_TEST)
+if(CONFIG_NRF70_BM_RADIO_TEST)
   target_sources(
     nrf70-bm-lib
     PRIVATE
@@ -64,7 +64,7 @@ if(CONFIG_NRF70_RADIO_TEST)
   )
 endif()
 
-if(CONFIG_NRF70_SCAN_ONLY)
+if(CONFIG_NRF70_BM_SCAN_ONLY)
   target_sources(
     nrf70-bm-lib
     PRIVATE

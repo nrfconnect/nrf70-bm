@@ -14,7 +14,7 @@ set(NRF70_BM_DIR ../../nrf70_bm_lib)
 set(NRF70_SHIM_DIR ../../nrf70_zephyr_shim)
 
 target_compile_definitions(app PRIVATE
-	-DCONFIG_NRF70_RADIO_TEST
+	-DCONFIG_NRF70_BM_RADIO_TEST
 	-DNRF70_RADIO_TEST # OSAL
 )
 
