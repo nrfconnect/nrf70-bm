@@ -10,8 +10,15 @@ if(NOT DEFINED ENV{ZEPHYR_BASE})
 endif()
 
 if (CONFIG_NRF70_BM_LIB)
-  set(NRF_WIFI_DIR ${ZEPHYR_NRF_WIFI_MODULE_DIR})
-  set(NRF_WIFI_BINS_DIR ${ZEPHYR_NRFXLIB_MODULE_DIR}/nrf_wifi/bin/zephyr)
+  if (DEFINED ENV{ZEPHYR_BASE})
+    # Use Zephyr module
+    set(NRF_WIFI_DIR ${ZEPHYR_NRF_WIFI_MODULE_DIR})
+    set(NRF_WIFI_BINS_DIR ${ZEPHYR_NRFXLIB_MODULE_DIR}/nrf_wifi/bin/zephyr)
+  else()
+    # Use git submodule
+    set(NRF_WIFI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../sdk-nrfxlib/nrf_wifi)
+    set(NRF_WIFI_BINS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../sdk-nrfxlib/nrf_wifi/bin/zephyr)
+  endif()
 
   add_subdirectory(${NRF_WIFI_DIR} nrf-wifi-osal)
 
