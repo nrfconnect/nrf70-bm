@@ -1,3 +1,6 @@
 [submodule "sdk-nrfxlib"]
 	path = sdk-nrfxlib
 	url = https://github.com/nrfconnect/sdk-nrfxlib.git
+[submodule "nrf_wifi"]
+	path = nrf_wifi
+	url = https://github.com/zephyrproject-rtos/nrf_wifi.git

@@ -87,7 +87,8 @@ The source directory structure shall look like this:
 
     nrf70_bm_lib/         # nRF70 BM driver library
     sdk_nrfxlib/          # nRF Connect SDK nrfxlib
-      nrf_wifi/           # nRF70 Wi-Fi OS agnostic driver
+      nrf_wifi/           # nRF70 Wi-Fi firmware patch blobs
+    nrf_wifi/             # nRF Wi-Fi driver OS agnostic code
     samples/              # Sample applications
       radio_test_bm/      # Radio test sample application
       scan_bm/            # Scan sample application
