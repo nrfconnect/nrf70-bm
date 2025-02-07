@@ -45,10 +45,36 @@ Configuration changes
 
   * ``CONFIG_NRF70_REG_DOMAIN``
 
+
 Build system changes
 ====================
 
-* For the build system changes refer to the following links:
+nRF70 BM library
+----------------
 
-  * <https://github.com/zephyrproject-rtos/nrf_wifi/commit/cc1008dea1d8171f3996c4185acabdc0f9f18e62>
-  * <>
+The following build system changes were introduced in the nRF70 BM library v1.1.0:
+
+.. list-table:: Build system modifications
+  :header-rows: 1
+
+  * - Old Path
+    - New Path(s)
+  * - ``nrf70_bm_lib/source/nrf70_bm_lib.c``
+    - | ``nrf70_bm_lib/source/nrf70_bm_lib/system/nrf70_bm_lib.c``
+      | ``nrf70_bm_lib/source/nrf70_bm_lib/radio_test/nrf70_bm_lib.c``
+  * - ``nrf70_bm_lib/source/nrf70_bm_core.c``
+    - | ``nrf70_bm_lib/source/nrf70_bm_lib/common/nrf70_bm_core.c``
+      | ``nrf70_bm_lib/source/nrf70_bm_lib/system/nrf70_bm_core.c``
+      | ``nrf70_bm_lib/source/nrf70_bm_lib/radio_test/nrf70_bm_core.c``
+  * - ``nrf70_bm_lib/include/nrf70_bm_lib.h``
+    - | ``nrf70_bm_lib/include/nrf70_bm_lib/common/nrf70_bm_lib.h``
+      | ``nrf70_bm_lib/include/nrf70_bm_lib/system/nrf70_bm_lib.h``
+      | ``nrf70_bm_lib/include/nrf70_bm_lib/radio_test/nrf70_bm_lib.h``
+  * - ``nrf70_bm_lib/include/nrf70_bm_core.h``
+    - | ``nrf70_bm_lib/include/common/nrf70_bm_core.h``
+      | ``nrf70_bm_lib/include/system/nrf70_bm_core.h``
+      | ``nrf70_bm_lib/include/radio_test/nrf70_bm_core.h``
+  * - ``nrf70_bm_lib/include/nrf70_bm_tx_pwr_ceil_dk.h``
+    - ``nrf70_bm_lib/include/common/nrf70_bm_tx_pwr_ceil_dk.h``
+  * - ``nrf70_bm_lib/include/nrf70_bm_tx_pwr_ceil_ek.h``
+    - ``nrf70_bm_lib/include/common/nrf70_bm_tx_pwr_ceil_ek.h``
