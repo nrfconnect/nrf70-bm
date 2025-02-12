@@ -224,78 +224,105 @@ int main(void)
 	bool sys_init = false;
 	bool rt_init = false;
 	int ret = -1;
+	int i;
 
-	/*
-	 * Radio test operation
-	 */
-	/* Initialize the WiFi module in the radio test mode of operation */
-	printf("\n\nWi-Fi radio test functionality using nRF70 Bare Metal library\n\n");
-
-	CHECK_RET(nrf70_bm_rt_init());
-	rt_init = true;
-
-	CHECK_RET(nrf70_bm_rt_conf_init(&ctx->conf_params));
-
-	/* Start transmit*/
-	CHECK_RET(nrf_wifi_radio_test_set_tx(&ctx->conf_params, true));
-
-	k_sleep(K_MSEC(5000));
-
-	/* Stop transmit */
-	CHECK_RET(nrf_wifi_radio_test_set_tx(&ctx->conf_params, false));
-
-	CHECK_RET(nrf70_bm_rt_stats_get());
-
-	printf("\n\nDeinitializing radio test functionality\n\n");
-
-	nrf70_bm_rt_deinit();
-	rt_init = false;
-
-	/*
-	 * Scan operation
-	 */
-	printf("\n\nSwitching to Wi-Fi scan functionality using nRF70 Bare Metal library\n");
-
-	memcpy(reg_info.country_code, CONFIG_WIFI_SCAN_REG_DOMAIN, 2);
-	reg_info.force = true;
-
-	/* Initialize the WiFi module in the System mode of operation */
-	CHECK_RET(nrf70_bm_sys_init(NULL, &reg_info));
-	sys_init = true;
-
-	printf("Scanning for WiFi networks...\n");
-
-	/* Prepare scan parameters */
-	CHECK_RET(prepare_scan_params(&scan_params));
-
-	/* Start scanning for WiFi networks */
-	is_scan_done = false;
-
-	printf("Starting scan\n");
-	CHECK_RET(nrf70_bm_sys_scan_start(&scan_params, scan_result_cb));
-
-	/* Wait for the scan to complete or timeout */
-	unsigned int timeout = 30000;
-	while (!is_scan_done && timeout > 0) {
-		/* Wait for the scan to complete */
-		k_sleep(K_MSEC(500));
-		timeout -= 500;
+	reg_info.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
+	if (!reg_info.chan_info) {
+		printf("Failed to allocate memory for regulatory info\n");
+		ret = -ENOMEM;
+		goto cleanup;
 	}
 
-	if (!is_scan_done) {
-		printf("Scan timeout\n");
-	} else {
-		scan_result_cnt = 0;
-		printf("Scan complete\n");
-	}
+	for (i = 0; i < 2; i++) {
+		/*
+		 * Radio test operation
+		 */
+		/* Initialize the WiFi module in the radio test mode of operation */
+		printf("\n\nWi-Fi radio test functionality using nRF70 Bare Metal library\n\n");
 
-	/* Clean up the WiFi module in the system mode of operation */
-	printf("\n\nDeinitializing scan functionality\n\n");
-	nrf70_bm_sys_deinit();
-	sys_init = false;
+		if (i == 0) {
+			memcpy(reg_info.country_code,
+			       CONFIG_WIFI_REG_DOMAIN,
+			       2);
+		} else {
+			memcpy(reg_info.country_code,
+			       CONFIG_WIFI_REG_DOMAIN_2,
+			       2);
+		}
+
+		reg_info.force = true;
+
+		CHECK_RET(nrf70_bm_rt_init(&reg_info));
+		rt_init = true;
+
+		CHECK_RET(nrf70_bm_rt_conf_init(&ctx->conf_params));
+
+		printf("Starting transmit\n");
+		/* Start transmit*/
+		CHECK_RET(nrf_wifi_radio_test_set_tx(&ctx->conf_params, true));
+
+		k_sleep(K_MSEC(5000));
+
+		printf("Stopping transmit\n");
+		/* Stop transmit */
+		CHECK_RET(nrf_wifi_radio_test_set_tx(&ctx->conf_params, false));
+
+		printf("Getting stats\n");
+		CHECK_RET(nrf70_bm_rt_stats_get());
+
+		printf("\n\nDeinitializing radio test functionality\n\n");
+
+		nrf70_bm_rt_deinit();
+		rt_init = false;
+
+		/*
+		 * Scan operation
+		 */
+		printf("\n\nSwitching to Wi-Fi scan functionality using nRF70 Bare Metal library\n");
+
+		/* Initialize the WiFi module in the System mode of operation */
+		CHECK_RET(nrf70_bm_sys_init(NULL, &reg_info));
+		sys_init = true;
+
+		printf("Scanning for WiFi networks...\n");
+
+		/* Prepare scan parameters */
+		CHECK_RET(prepare_scan_params(&scan_params));
+
+		/* Start scanning for WiFi networks */
+		is_scan_done = false;
+
+		printf("Starting scan\n");
+		CHECK_RET(nrf70_bm_sys_scan_start(&scan_params, scan_result_cb));
+
+		/* Wait for the scan to complete or timeout */
+		unsigned int timeout = 30000;
+		while (!is_scan_done && timeout > 0) {
+			/* Wait for the scan to complete */
+			k_sleep(K_MSEC(500));
+			timeout -= 500;
+		}
+
+		if (!is_scan_done) {
+			printf("Scan timeout\n");
+		} else {
+			scan_result_cnt = 0;
+			printf("Scan complete\n");
+		}
+
+		/* Clean up the WiFi module in the system mode of operation */
+		printf("\n\nDeinitializing scan functionality\n\n");
+		nrf70_bm_sys_deinit();
+		sys_init = false;
+	}
 
 	ret = 0;
 cleanup:
+	if (reg_info.chan_info) {
+			free(reg_info.chan_info);
+			reg_info.chan_info = NULL;
+	}
+
 	if (sys_init) {
 		nrf70_bm_sys_deinit();
 		sys_init = false;

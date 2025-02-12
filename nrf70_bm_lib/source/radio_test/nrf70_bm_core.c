@@ -144,3 +144,83 @@ enum nrf_wifi_status nrf70_bm_rt_fw_load(void *rpu_ctx)
 
 	return status;
 }
+
+
+int nrf70_bm_rt_fmac_get_reg(struct nrf70_bm_regulatory_info *reg_info)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	void *rpu_ctx = nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf_wifi_fmac_reg_info reg_info_fmac = { 0 };
+	struct nrf70_bm_reg_chan_info *tmp_chan_info_out = NULL;
+	struct nrf_wifi_get_reg_chn_info *tmp_chan_info_in = NULL;
+	int chan_idx;
+
+	if (!rpu_ctx) {
+		NRF70_LOG_ERR("%s: RPU context is NULL", __func__);
+		goto err;
+	}
+
+	status = nrf_wifi_fmac_get_reg(rpu_ctx, &reg_info_fmac);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		NRF70_LOG_ERR("%s: %d Failed to get regulatory info", __func__, status);
+		goto err;
+	}
+
+	memcpy(reg_info->country_code,
+	       reg_info_fmac.alpha2,
+	       NRF_WIFI_COUNTRY_CODE_LEN);
+	reg_info->num_channels = reg_info_fmac.reg_chan_count;
+
+	if (!reg_info->chan_info) {
+		NRF70_LOG_ERR("%s: Channel info buffer is NULL", __func__);
+		goto err;
+	}
+
+	if (reg_info->num_channels > NRF70_MAX_CHANNELS) {
+		NRF70_LOG_ERR("%s: Number of channels exceeds maximum supported (%d)",
+			      __func__,
+			      NRF70_MAX_CHANNELS);
+		goto err;
+	}
+
+	for (chan_idx = 0; chan_idx < reg_info_fmac.reg_chan_count; chan_idx++) {
+		tmp_chan_info_out = &(reg_info->chan_info[chan_idx]);
+		tmp_chan_info_in = &(reg_info_fmac.reg_chan_info[chan_idx]);
+		tmp_chan_info_out->center_frequency = tmp_chan_info_in->center_frequency;
+		tmp_chan_info_out->dfs = !!tmp_chan_info_in->dfs;
+		tmp_chan_info_out->max_power = tmp_chan_info_in->max_power;
+		tmp_chan_info_out->passive_only = !!tmp_chan_info_in->passive_channel;
+		tmp_chan_info_out->supported = !!tmp_chan_info_in->supported;
+	}
+	return 0;
+err:
+	return -1;
+}
+
+
+int nrf70_bm_rt_fmac_set_reg(struct nrf70_bm_regulatory_info *reg_info)
+{
+	enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
+	void *rpu_ctx = nrf70_bm_rt_priv.rpu_ctx_bm.rpu_ctx;
+	struct nrf_wifi_fmac_reg_info reg_info_fmac = { 0 };
+
+	if (!rpu_ctx) {
+		NRF70_LOG_ERR("%s: RPU context is NULL", __func__);
+		goto err;
+	}
+
+	memcpy(reg_info_fmac.alpha2,
+	       reg_info->country_code,
+	       NRF_WIFI_COUNTRY_CODE_LEN);
+	reg_info_fmac.force = reg_info->force;
+
+	status = nrf_wifi_fmac_set_reg(rpu_ctx, &reg_info_fmac);
+	if (status != NRF_WIFI_STATUS_SUCCESS) {
+		NRF70_LOG_ERR("%s: Failed to set regulatory info", __func__);
+		goto err;
+	}
+
+	return 0;
+err:
+	return -1;
+}

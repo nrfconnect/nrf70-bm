@@ -14,3 +14,9 @@ config ZEPHYR_SHELL
   select SHELL_BACKEND_SERIAL
 
 endmenu
+
+config WIFI_RT_REG_DOMAIN
+	string "Regulatory domain"
+	default "00"
+	help
+	  Specifies the regulatory domain to be used for the radio test.

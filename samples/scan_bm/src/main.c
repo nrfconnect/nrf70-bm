@@ -106,7 +106,6 @@ static int dump_regulatory_info(struct nrf70_bm_regulatory_info *reg_info)
 {
 	int ret;
 
-	printf("Getting regulatory information...\n");
 	memset(reg_info->chan_info, 0, sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
 	ret = nrf70_bm_sys_get_reg(reg_info);
 	if (ret) {
@@ -114,17 +113,18 @@ static int dump_regulatory_info(struct nrf70_bm_regulatory_info *reg_info)
 		return -1;
 	}
 
-	// Dump the regulatory information
-	printf("Regulatory information: Country code: %s\n", reg_info->country_code);
+	/* Dump the regulatory information */
+	printf("Regulatory country code: %s\n", reg_info->country_code);
 	printf("Number of channels: %d\n", reg_info->num_channels);
 	for (int i = 0; i < reg_info->num_channels; i++) {
 		printf("Channel %d: center frequency %d MHz, max power %d dBm, "
-			   "passive only %d, supported %d, DFS %d\n",
-			   i, reg_info->chan_info[i].center_frequency,
-			   reg_info->chan_info[i].max_power,
-			   reg_info->chan_info[i].passive_only,
-			   reg_info->chan_info[i].supported,
-			   reg_info->chan_info[i].dfs);
+		       "passive only %d, supported %d, DFS %d\n",
+		       i,
+		       reg_info->chan_info[i].center_frequency,
+		       reg_info->chan_info[i].max_power,
+		       reg_info->chan_info[i].passive_only,
+		       reg_info->chan_info[i].supported,
+		       reg_info->chan_info[i].dfs);
 	}
 
 	return 0;
@@ -142,9 +142,6 @@ int main(void)
 	memcpy(reg_info.country_code, CONFIG_WIFI_SCAN_REG_DOMAIN, 2);
 	reg_info.force = true;
 
-	// Initialize the WiFi module
-	CHECK_RET(nrf70_bm_sys_init(NULL, &reg_info));
-
 	reg_info.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
 	if (!reg_info.chan_info) {
 		printf("Failed to allocate memory for regulatory info\n");
@@ -152,41 +149,37 @@ int main(void)
 		goto cleanup;
 	}
 
-	printf("Scanning for WiFi networks...\n");
-	CHECK_RET(dump_regulatory_info(&reg_info));
+	/* Initialize the WiFi module */
+	CHECK_RET(nrf70_bm_sys_init(NULL, &reg_info));
 
-	// Prepare scan parameters
+	printf("Scanning for WiFi networks...\n");
+	/* Prepare scan parameters */
 	CHECK_RET(prepare_scan_params(&scan_params));
 
 	while (1)
 	{
-		// Start scanning for WiFi networks
+		/* Start scanning for WiFi networks */
 		is_scan_done = false;
 		printf("Starting %d scan...\n", scan_count);
 		CHECK_RET(nrf70_bm_sys_scan_start(&scan_params, scan_result_cb));
 
-		// Wait for the scan to complete or timeout
+		/* Wait for the scan to complete or timeout */
 		unsigned int timeout = 30000;
-		while (!is_scan_done && timeout > 0)
-		{
-			// Wait for the scan to complete
+		while (!is_scan_done && timeout > 0) {
+			/* Wait for the scan to complete */
 			k_sleep(K_MSEC(500));
 			timeout -= 500;
 		}
 
-		if (!is_scan_done)
-		{
+		if (!is_scan_done) {
 			printf("Scan timeout\n");
-		}
-		else
-		{
+		} else {
 			scan_result_cnt = 0;
 			printf("Scan complete\n");
 		}
 
-		if (scan_count % CONFIG_WIFI_SCAN_REG_DOMAIN_SWITCH_COUNT == 0)
-		{
-			// Switch regulatory domain
+		if (scan_count % CONFIG_WIFI_SCAN_REG_DOMAIN_SWITCH_COUNT == 0) {
+			/* Switch regulatory domain */
 			const char *new_domain = (strncmp(reg_info.country_code, CONFIG_WIFI_SCAN_REG_DOMAIN, 2) == 0) ?
 									 CONFIG_WIFI_SCAN_REG_DOMAIN_2 : CONFIG_WIFI_SCAN_REG_DOMAIN;
 			memcpy(reg_info.country_code, new_domain, 2);
@@ -200,7 +193,7 @@ int main(void)
 		k_sleep(K_MSEC(CONFIG_WIFI_SCAN_INTERVAL_S * 1000));
 	}
 
-	// Clean up the WiFi module
+	/* Clean up the WiFi module */
 	CHECK_RET(nrf70_bm_sys_deinit());
 
 	ret = 0;

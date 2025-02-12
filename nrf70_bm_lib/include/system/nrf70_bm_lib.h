@@ -39,9 +39,6 @@ extern struct nrf70_bm_sys_wifi_drv_priv nrf70_bm_sys_priv;
 #define NRF70_SCAN_CHAN_MAX_MANUAL 1
 #endif /* CONFIG_NRF70_SCAN_CHAN_MAX_MANUAL */
 
-/** @brief Maximum number of channels supported by the Wi-Fi chip - 2.4GHz + 5GHz. */
-#define NRF70_MAX_CHANNELS ( 14 + 30 )
-
 /** @brief IEEE 802.11 security types. */
 enum nrf70_bm_sys_security_type {
 	/** No security. */

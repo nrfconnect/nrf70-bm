@@ -91,11 +91,11 @@ int nrf70_bm_sys_init(uint8_t *mac_addr,
 	int ret;
 	struct nrf70_bm_regulatory_info reg_info_curr = { 0 };
 
-	// Initialize the WiFi module
+	/* Initialize the WiFi module */
 	ret = nrf70_bm_sys_fmac_init();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module");
-		goto err;
+		goto out;
 	}
 
 	ret = nrf70_bm_sys_fmac_add_vif_sta(mac_addr);
@@ -103,12 +103,18 @@ int nrf70_bm_sys_init(uint8_t *mac_addr,
 		NRF70_LOG_ERR("Failed to add STA VIF");
 		goto deinit;
 	}
+
 	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
 	if (!reg_info_curr.chan_info) {
 		printf("Failed to allocate memory for regulatory info\n");
 		ret = -1;
 		goto deinit;
 	}
+
+	memset(reg_info_curr.chan_info,
+	       0,
+	       sizeof(struct nrf70_bm_reg_chan_info) *
+	       NRF70_MAX_CHANNELS);
 
 	ret = nrf70_bm_sys_fmac_get_reg(&reg_info_curr);
 	if (ret) {
@@ -129,18 +135,48 @@ int nrf70_bm_sys_init(uint8_t *mac_addr,
 	}
 
 	if (reg_info) {
+		printf("Setting regulatory country code to: %s\n", reg_info->country_code);
 		ret = nrf70_bm_sys_fmac_set_reg(reg_info);
 		if (ret) {
 			NRF70_LOG_ERR("Failed to set regulatory info");
 			goto deinit;
 		}
-	}
-	return 0;
 
+		memset(reg_info_curr.chan_info,
+		       0,
+		       sizeof(struct nrf70_bm_reg_chan_info) *
+		       NRF70_MAX_CHANNELS);
+
+		ret = nrf70_bm_sys_get_reg(&reg_info_curr);
+		if (ret) {
+			printf("Failed to get regulatory info: %d\n", ret);
+			goto deinit;
+		}
+
+		/* Dump the regulatory information */
+		printf("Regulatory country code: %s\n", reg_info_curr.country_code);
+		printf("Number of channels: %d\n", reg_info_curr.num_channels);
+		for (int i = 0; i < reg_info_curr.num_channels; i++) {
+			printf("Channel %d: center frequency %d MHz, max power %d dBm, "
+			       "passive only %d, supported %d, DFS %d\n",
+			       i,
+			       reg_info_curr.chan_info[i].center_frequency,
+			       reg_info_curr.chan_info[i].max_power,
+			       reg_info_curr.chan_info[i].passive_only,
+			       reg_info_curr.chan_info[i].supported,
+			       reg_info_curr.chan_info[i].dfs);
+		}
+	}
+
+	ret = 0;
+	goto out;
 deinit:
-	free(reg_info_curr.chan_info);
 	nrf70_bm_sys_fmac_deinit();
-err:
+out:
+	if (reg_info_curr.chan_info) {
+		free(reg_info_curr.chan_info);
+	}
+
 	return ret;
 }
 

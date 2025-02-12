@@ -36,5 +36,7 @@ struct nrf70_bm_rt_wifi_drv_priv {
 int nrf70_bm_rt_fmac_init(void);
 int nrf70_bm_rt_fmac_deinit(void);
 enum nrf_wifi_status nrf70_bm_rt_fw_load(void *rpu_ctx);
+int nrf70_bm_rt_fmac_get_reg(struct nrf70_bm_regulatory_info *reg_info);
+int nrf70_bm_rt_fmac_set_reg(struct nrf70_bm_regulatory_info *reg_info);
 
 #endif /* NRF70_BM_RT_CORE_H__ */

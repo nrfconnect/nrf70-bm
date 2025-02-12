@@ -36,7 +36,7 @@ extern struct nrf70_bm_rt_wifi_drv_priv nrf70_bm_rt_priv;
  * @retval 0 If the operation was successful.
  * @retval -1 If the operation failed.
  */
-int nrf70_bm_rt_init(void);
+int nrf70_bm_rt_init(struct nrf70_bm_regulatory_info *reg_info);
 
 /**@brief Clean up the WiFi module in the radio test mode of operation.
  *
@@ -47,6 +47,32 @@ int nrf70_bm_rt_init(void);
  * @retval 0 If the operation was successful.
  */
 int nrf70_bm_rt_deinit(void);
+
+/** @brief Set nRF70 regulatory information.
+ *
+ * This function sets the regulatory information of the nRF70 device.
+ * The regulatory information includes the country code, the number of channels
+ * supported and the channel information.
+ *
+ * @param[in] reg_info Regulatory information.
+ *
+ * @retval 0 If the operation was successful.
+ * @retval -1 If the operation failed.
+ */
+int nrf70_bm_rt_set_reg(struct nrf70_bm_regulatory_info *reg_info);
+
+/** @brief Get nRF70 regulatory information.
+ *
+ * This function retrieves the regulatory information of the nRF70 device.
+ * The regulatory information includes the country code, the number of channels
+ * supported and the channel information.
+ *
+ * @param[out] reg_info Regulatory information.
+ *
+ * @retval 0 If the operation was successful.
+ * @retval -1 If the operation failed. *
+ */
+int nrf70_bm_rt_get_reg(struct nrf70_bm_regulatory_info *reg_info);
 
 #ifdef __cplusplus
 }

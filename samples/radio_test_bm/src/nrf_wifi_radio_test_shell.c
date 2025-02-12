@@ -13,6 +13,7 @@
 
 #include "radio_test/fmac_api.h"
 #include <radio_test/nrf70_bm_core.h>
+#include <radio_test/nrf70_bm_lib.h>
 
 #ifdef CONFIG_ZEPHYR_SHELL
 struct shell *shell_global;
@@ -1535,45 +1536,70 @@ static int nrf_wifi_radio_test_wlan_switch_ctrl(size_t argc,
   return 0;
 }
 
-static int nrf_wifi_radio_test_set_reg_domain(size_t argc, const char *argv[]) {
+static int nrf_wifi_radio_test_reg_domain(size_t argc, const char *argv[]) {
   enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
   int ret = -ENOEXEC;
-  struct nrf_wifi_fmac_reg_info reg_domain_info = {0};
+  struct nrf70_bm_regulatory_info reg_domain_info = {0};
 
-  if (strlen(argv[1]) != 2) {
-    RT_SHELL_PRINTF_WARNING(
-        "Invalid reg domain: Length should be two letters/digits\n");
-    goto out;
-  }
+  if (argv[1]) {
+    if (strlen(argv[1]) != 2) {
+      RT_SHELL_PRINTF_WARNING(
+          "Invalid reg domain: Length should be two letters/digits\n");
+      goto out;
+    }
 
-  /* Two letter country code with special case of 00 for WORLD */
-  if (((argv[1][0] < 'A' || argv[1][0] > 'Z') ||
-       (argv[1][1] < 'A' || argv[1][1] > 'Z')) &&
-      (argv[1][0] != '0' || argv[1][1] != '0')) {
-    RT_SHELL_PRINTF_WARNING("Invalid reg domain %c%c\n", argv[1][0],
-                            argv[2][1]);
-    goto out;
-  }
+    /* Two letter country code with special case of 00 for WORLD */
+    if (((argv[1][0] < 'A' || argv[1][0] > 'Z') ||
+         (argv[1][1] < 'A' || argv[1][1] > 'Z')) &&
+        (argv[1][0] != '0' || argv[1][1] != '0')) {
+      RT_SHELL_PRINTF_WARNING("Invalid reg domain %c%c\n", argv[1][0],
+                              argv[2][1]);
+      goto out;
+    }
 
-  ctx->conf_params.country_code[0] = argv[1][0];
-  ctx->conf_params.country_code[1] = argv[1][1];
+    ctx->conf_params.country_code[0] = argv[1][0];
+    ctx->conf_params.country_code[1] = argv[1][1];
 
-  if (!check_test_in_prog()) {
-    goto out;
-  }
+    if (!check_test_in_prog()) {
+      goto out;
+    }
 
-  memcpy(reg_domain_info.alpha2, ctx->conf_params.country_code,
-         NRF_WIFI_COUNTRY_CODE_LEN);
+    memcpy(reg_domain_info.country_code,
+           ctx->conf_params.country_code,
+           NRF_WIFI_COUNTRY_CODE_LEN);
 
-  status = nrf_wifi_fmac_set_reg(ctx->rpu_ctx, &reg_domain_info);
+    status = nrf70_bm_rt_set_reg(&reg_domain_info);
 
-  if (status != NRF_WIFI_STATUS_SUCCESS) {
-    RT_SHELL_PRINTF_ERROR("Regulatory programming failed\n");
-    goto out;
+    if (status != NRF_WIFI_STATUS_SUCCESS) {
+      RT_SHELL_PRINTF_ERROR("Regulatory programming failed\n");
+      goto out;
+    }
+  } else {
+    reg_domain_info.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
+    if (!reg_domain_info.chan_info) {
+      printf("Failed to allocate memory for regulatory info\n");
+      goto out;
+    }
+
+    memset(reg_domain_info.chan_info,
+           0,
+           (sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS));
+
+    status = nrf70_bm_rt_get_reg(&reg_domain_info);
+
+    if (status != NRF_WIFI_STATUS_SUCCESS) {
+      RT_SHELL_PRINTF_ERROR("Regulatory information get failed\n");
+      goto out;
+    }
+
+    RT_SHELL_PRINTF_INFO("Reg domain set to: %s\n", reg_domain_info.country_code);
   }
 
   ret = 0;
 out:
+  if (reg_domain_info.chan_info) {
+    free(reg_domain_info.chan_info);
+  }
   return ret;
 }
 
@@ -1638,7 +1664,7 @@ DEFINE_CMD_HANDLER(nrf_wifi_radio_test_show_cfg)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_get_stats)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_wlan_switch_ctrl)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_tx_pkt_cw)
-DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_reg_domain)
+DEFINE_CMD_HANDLER(nrf_wifi_radio_test_reg_domain)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_bypass_reg)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_ant_gain)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_edge_bo)
@@ -1803,7 +1829,7 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
                   RTSH(nrf_wifi_radio_test_set_tx_pkt_cw), 2, 0),
     SHELL_CMD_ARG(reg_domain, NULL,
                   "Configure WLAN regulatory domain country code",
-                  RTSH(nrf_wifi_radio_test_set_reg_domain), 2, 0),
+                  RTSH(nrf_wifi_radio_test_reg_domain), 1, 1),
     SHELL_CMD_ARG(
         bypass_reg_domain, NULL,
         "Configure WLAN to bypass regulatory\n"

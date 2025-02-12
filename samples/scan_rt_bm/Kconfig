@@ -141,13 +141,13 @@ config WIFI_SCAN_PROFILE_2_4GHz_NON_OVERLAP_AND_5GHz_NON_DFS_CHAN
 
 endchoice
 
-config WIFI_SCAN_REG_DOMAIN
+config WIFI_REG_DOMAIN
 	string "Regulatory domain"
 	default "00"
 	help
 	  Specifies the regulatory domain to be used for the scan.
 
-config WIFI_SCAN_REG_DOMAIN_2
+config WIFI_REG_DOMAIN_2
 	string "Regulatory domain"
 	default "IN"
 	help
@@ -155,12 +155,6 @@ config WIFI_SCAN_REG_DOMAIN_2
 	  The code will keep toggling between the two regulatory domains,
 	  primarily to test the regulatory domain change feature.
 
-config WIFI_SCAN_REG_DOMAIN_SWITCH_COUNT
-	int "Regulatory domain switch count"
-	default 5
-	help
-	  Specifies the number of scans to be done before switching the
-	  regulatory domain.
 if WIFI_SCAN_PROFILE_5GHz_NON_DFS_CHAN || WIFI_SCAN_PROFILE_2_4GHz_NON_OVERLAP_AND_5GHz_NON_DFS_CHAN
 config WIFI_MGMT_SCAN_CHAN_MAX_MANUAL
 	default 12

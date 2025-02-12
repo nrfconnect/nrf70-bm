@@ -45,6 +45,8 @@ extern "C" {
 #define NRF70_LOG_DBG(...)
 #endif
 
+/** @brief Maximum number of channels supported by the Wi-Fi chip - 2.4GHz + 5GHz. */
+#define NRF70_MAX_CHANNELS ( 14 + 30 )
 
 /** @brief Per-channel regulatory attributes */
 struct nrf70_bm_reg_chan_info {
