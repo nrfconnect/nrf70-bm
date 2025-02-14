@@ -26,10 +26,13 @@ API changes
   * ``nrf70_bm_sys_get_reg()``
   * ``nrf70_bm_rt_init()``
   * ``nrf70_bm_rt_deinit()``
+  * ``nrf70_bm_rt_set_reg()``
+  * ``nrf70_bm_rt_get_reg()``
 
 * The following APIs were modified in the library:
 
   * ``nrf70_bm_init()`` is now renamed to ``nrf70_bm_sys_init()``.
+
       - added a new parameter ``mac_addr`` to allow the user to set the MAC address of the device.
       - added a new parameter ``reg_info`` to allow the user to set the regulatory information of the device.
   * ``nrf70_bm_deinit()`` is now renamed to ``nrf70_bm_sys_deinit()``.

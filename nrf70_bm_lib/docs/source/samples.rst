@@ -24,4 +24,10 @@ For more information, see https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf
 Scan and Radio test combo
 +++++++++++++++++++++++++
 
-The Scan and Radio test combo sample demonstrates how to switch between the Scan and Radio test operational modes at runtime.
+The Scan and Radio test combo sample demonstrates how to switch between the Scan and Radio test operational modes, using different regulatory domains, at runtime.
+It does the following:
+
+ * Uses the regulatory domain ``WIFI_REG_DOMAIN``
+ * Initializes radio test mode and does continuous TX for 5 seconds, followed by a display of the statistics.
+ * Switches to scan mode and scans for the access points.
+ * Changes the regulatory domain to ``WIFI_REG_DOMAIN_2`` and repeats the above steps.

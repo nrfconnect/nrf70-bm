@@ -29,8 +29,12 @@ The library exposes the following functionality to the user application
 * nRF70 Series device initialization and de-initialization
 * Wi-Fi scan, through a single-function API supporting a wide list of scan configuration parameters
 * Obtaining statistics from the nRF70 Series device
+* Wi-Fi radio test functionality
 
-The library is described in a single public-API definition header file ``nrf70_bm_lib.h``.
+The library is described in the following public-API definition header files:
+
+* ``system/nrf70_bm_lib.h`` for the Wi-Fi scan functionality.
+* ``radio_test/nrf70_bm_lib.h`` for the Wi-Fi radio test functionality.
 
 Being fully RTOS-agnostic, the BM library is portable to any bare-metal or OS environment.
 
@@ -121,7 +125,7 @@ The library driver code execute in the following contexts:"
 
 * *Tasklet context*: Tasklets perform the actual work of interacting with the nRF70, processing events coming from the device (offloaded tasks from ISRs)
   Only event receive operations are performned in tasklets. Essentially, event receive tasklets read the event data coming from the nRF70 Series device and hand them over to the registered FMAC callbacks.
-  An example of such operation is the processing of incoming AP scan results after a scan command has been issued. 
+  An example of such operation is the processing of incoming AP scan results after a scan command has been issued.
 
   .. note::
      In the reference implementation for Zephyr tasklet work is offloaded to Zephyr kernel workqueues.
@@ -193,5 +197,12 @@ The ``IEEE 802.11d`` beacon's regulatory region hint (if present) will be given 
 Run time
 --------
 
-You can also set the regulatory domain using an API call, the regulatory information can be passed using the ``nrf70_bm_init()`` API.
-There is also an API to get the current regulatory domain set in the device, ``nrf70_bm_get_reg()``.
+You can also set/get the regulatory domain using:
+
+* ``nrf70_bm_sys_set_reg()`` and ``nrf70_bm_sys_get_reg()`` API in the **Scan-only** mode of operation.
+* ``nrf70_bm_rt_set_reg()`` and ``nrf70_bm_rt_get_reg()`` API in the **Radio test** mode of operation.
+
+The regulatory information can also be passed using the:
+
+* ``nrf70_bm_sys_init()`` API in the **Scan-only** mode of operation.
+* ``nrf70_bm_rt_init()`` API in the **Radio test** mode of operation.
