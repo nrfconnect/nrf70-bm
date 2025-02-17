@@ -89,7 +89,7 @@ int nrf70_bm_rt_fmac_init(void)
 					   &tx_pwr_ctrl_params,
 					   &tx_pwr_ceil_params,
 					   &board_params,
-					   STRINGIFY(CONFIG_NRF70_REG_DOMAIN));
+					   STR(CONFIG_NRF70_REG_DOMAIN));
 	if (status != NRF_WIFI_STATUS_SUCCESS) {
 		NRF70_LOG_ERR("Failed to initialize device\n");
 		goto deinit;
