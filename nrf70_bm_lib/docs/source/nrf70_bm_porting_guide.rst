@@ -7,8 +7,8 @@ The nRF70 Series BM driver is designed to be portable across different platforms
 This guide provides an overview of the steps required to port the library to a new platform or OS environment.
 
 
-Zephyr functionality used in the reference implementation:
-**********************************************************
+Zephyr functionality used in the reference implementation
+*********************************************************
 
 The reference implementation of the BM Driver for the Zephyr RTOS uses build-time tools as well as standard OS primitives; these elements require porting effort when integrating the driver to a third-party (non-Zephyr) platform.
 
@@ -94,13 +94,14 @@ OS agnostic driver layer
 ************************
 
 The BM library uses the OS-agnostic nRF70 Wi-Fi driver layer to interact with the nRF70 Series device.
-This layer is pulled in as a submodule from the nRF Connect SDK nrfxlib repository using a custom branch.
+This layer is pulled in as the following submodules:
 
-For more information, visit the `nRF Connect SDK nrfxlib repository <https://github.com/nrfconnect/sdk-nrfxlib>`_.
+* *Driver* : From the Zephyr Project nrf_wifi repository. For more information, visit the `Zephyr project nrf_wifi repository <https://github.com/zephyrproject-rtos/nrf_wifi>`_.
+* *Firmware patches*: From the nRF Connect SDK nrfxlib repository. For more information, visit the `nRF Connect SDK nrfxlib repository <https://github.com/nrfconnect/sdk-nrfxlib>`_.
 
 .. note ::
 
-   The git submodule pulls in the entire repo, but only `nrf_wifi` directory is required for the BM driver.
+   The BM driver used the firmware patches from <https://github.com/nrfconnect/sdk-nrfxlib/tree/main/nrf_wifi/bin/zephyr>.
 
 Transmit (TX) power configuration
 *********************************
