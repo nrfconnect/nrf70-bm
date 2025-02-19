@@ -400,7 +400,6 @@ int nrf70_bm_sys_fmac_init(void)
 
 	return 0;
 deinit:
-	nrf_wifi_osal_deinit();
 	nrf70_bm_sys_fmac_deinit();
 err:
 	return -1;
