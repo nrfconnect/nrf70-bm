@@ -30,7 +30,7 @@ int nrf70_bm_rt_init(struct nrf70_bm_regulatory_info *reg_info)
 		goto deinit;
 	}
 
-	ret = nrf70_bm_rt_fmac_get_reg(&reg_info_curr);
+	ret = nrf70_bm_rt_get_reg(&reg_info_curr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to get regulatory info");
 		goto deinit;
@@ -48,17 +48,17 @@ int nrf70_bm_rt_init(struct nrf70_bm_regulatory_info *reg_info)
 			goto deinit;
 		}
 
-		memset(reg_info->chan_info,
+		memset(reg_info_curr.chan_info,
 		       0,
 		       sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
 
-		ret = nrf70_bm_rt_get_reg(reg_info);
+		ret = nrf70_bm_rt_get_reg(&reg_info_curr);
 		if (ret) {
 			printf("Failed to get regulatory info: %d\n", ret);
 			return -1;
 		}
 
-		printf("Regulatory country code set to: %s\n", reg_info->country_code);
+		printf("Regulatory country code set to: %s\n", reg_info_curr.country_code);
 	}
 	return 0;
 deinit:

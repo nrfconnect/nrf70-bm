@@ -34,13 +34,6 @@ int main(void)
 	memcpy(reg_info.country_code, CONFIG_WIFI_RT_REG_DOMAIN, 2);
 	reg_info.force = true;
 
-	reg_info.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
-	if (!reg_info.chan_info) {
-		printf("Failed to allocate memory for regulatory info\n");
-		ret = -ENOMEM;
-		goto cleanup;
-	}
-
 	/* Initialize the Wi-Fi module */
 	CHECK_RET(nrf70_bm_rt_init(&reg_info));
 	printf("Initialized WiFi module, ready for radio test\n");
@@ -52,10 +45,6 @@ int main(void)
 	}
 
 cleanup:
-	if (reg_info.chan_info) {
-		free(reg_info.chan_info);
-	}
-
 	if (ret) {
 		nrf70_bm_rt_deinit();
 		printf("Exiting WiFi radio test sample application with error: %d\n", ret);

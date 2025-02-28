@@ -116,7 +116,7 @@ int nrf70_bm_sys_init(uint8_t *mac_addr,
 	       sizeof(struct nrf70_bm_reg_chan_info) *
 	       NRF70_MAX_CHANNELS);
 
-	ret = nrf70_bm_sys_fmac_get_reg(&reg_info_curr);
+	ret = nrf70_bm_sys_get_reg(&reg_info_curr);
 	if (ret) {
 		NRF70_LOG_ERR("Failed to get regulatory info");
 		goto deinit;

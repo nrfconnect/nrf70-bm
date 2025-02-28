@@ -226,13 +226,6 @@ int main(void)
 	int ret = -1;
 	int i;
 
-	reg_info.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
-	if (!reg_info.chan_info) {
-		printf("Failed to allocate memory for regulatory info\n");
-		ret = -ENOMEM;
-		goto cleanup;
-	}
-
 	for (i = 0; i < 2; i++) {
 		/*
 		 * Radio test operation
@@ -318,11 +311,6 @@ int main(void)
 
 	ret = 0;
 cleanup:
-	if (reg_info.chan_info) {
-			free(reg_info.chan_info);
-			reg_info.chan_info = NULL;
-	}
-
 	if (sys_init) {
 		nrf70_bm_sys_deinit();
 		sys_init = false;
