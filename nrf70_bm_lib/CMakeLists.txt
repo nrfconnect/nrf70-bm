@@ -62,23 +62,23 @@ if (CONFIG_NRF70_BM_LIB)
     source/common/nrf70_bm_core.c
   )
 
-if(CONFIG_NRF70_BM_RADIO_TEST)
-  target_sources(
-    nrf70-bm-lib
-    PRIVATE
-    source/radio_test/nrf70_bm_lib.c
-    source/radio_test/nrf70_bm_core.c
-  )
-endif()
+  if(CONFIG_NRF70_BM_RADIO_TEST)
+    target_sources(
+      nrf70-bm-lib
+      PRIVATE
+      source/radio_test/nrf70_bm_lib.c
+      source/radio_test/nrf70_bm_core.c
+    )
+  endif()
 
-if(CONFIG_NRF70_BM_SCAN_ONLY)
-  target_sources(
-    nrf70-bm-lib
-    PRIVATE
-    source/system/nrf70_bm_lib.c
-    source/system/nrf70_bm_core.c
-  )
-endif()
+  if(CONFIG_NRF70_BM_SCAN_ONLY)
+    target_sources(
+      nrf70-bm-lib
+      PRIVATE
+      source/system/nrf70_bm_lib.c
+      source/system/nrf70_bm_core.c
+    )
+  endif()
 
   target_link_libraries(nrf70-bm-lib PRIVATE nrf70-zep-shim nrf-wifi-osal)
 endif()
