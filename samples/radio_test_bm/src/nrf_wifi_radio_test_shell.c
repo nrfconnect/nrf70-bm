@@ -236,6 +236,9 @@ static int nrf_wifi_deinit(size_t argc, const char *argv[])
     return ret;
   }
 
+  memset(&ctx->conf_params, 0, sizeof(ctx->conf_params));
+  ctx->rf_test_run = false;
+
   printf("Deinitialized WiFi module\n");
 
   return 0;
