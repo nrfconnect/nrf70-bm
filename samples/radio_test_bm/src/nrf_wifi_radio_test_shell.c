@@ -196,6 +196,52 @@ static int check_channel_settings(unsigned char tput_mode,
   return 0;
 }
 
+static int nrf_wifi_init(size_t argc, const char *argv[])
+{
+	int ret = 0;
+	struct nrf70_bm_regulatory_info reg_info = { 0 };
+
+	ARG_UNUSED(argc);
+	ARG_UNUSED(argv);
+
+	memcpy(reg_info.country_code, CONFIG_WIFI_RT_REG_DOMAIN, 2);
+	reg_info.force = true;
+
+	/* Initialize the Wi-Fi module */
+	ret = nrf70_bm_rt_init(&reg_info);
+	if (ret) {
+		printf("Failed to initialize WiFi module\n");
+		goto cleanup;
+	}
+	printf("Initialized WiFi module, ready for radio test\n");
+
+cleanup:
+	if (ret) {
+		nrf70_bm_rt_deinit();
+		printf("Exiting WiFi radio test sample application with error: %d\n", ret);
+	}
+	return ret;
+}
+
+static int nrf_wifi_deinit(size_t argc, const char *argv[])
+{
+  int ret;
+
+  ARG_UNUSED(argc);
+  ARG_UNUSED(argv);
+
+  ret = nrf70_bm_rt_deinit();
+  if (ret) {
+    printf("Failed to deinitialize WiFi module\n");
+    return ret;
+  }
+
+  printf("Deinitialized WiFi module\n");
+
+  return 0;
+}
+
+
 enum nrf_wifi_status
 nrf_wifi_radio_test_conf_init(struct rpu_conf_params *conf_params) {
   enum nrf_wifi_status status = NRF_WIFI_STATUS_FAIL;
@@ -1674,6 +1720,8 @@ DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_tx_power)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_ru_tone)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_ru_index)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_init)
+DEFINE_CMD_HANDLER(nrf_wifi_init);
+DEFINE_CMD_HANDLER(nrf_wifi_deinit);
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_tx)
 DEFINE_CMD_HANDLER(nrf_wifi_radio_test_set_rx)
 #ifdef CONFIG_NRF70_SR_COEX_RF_SWITCH
@@ -1791,6 +1839,10 @@ SHELL_STATIC_SUBCMD_SET_CREATE(
                   RTSH(nrf_wifi_radio_test_set_ru_index), 2, 0),
     SHELL_CMD_ARG(init, NULL, "<val> - Primary channel number",
                   RTSH(nrf_wifi_radio_test_init), 2, 0),
+    SHELL_CMD_ARG(nrf70_init, NULL, "Initialize nRF70",
+                  RTSH(nrf_wifi_init), 0, 0),
+    SHELL_CMD_ARG(nrf70_deinit, NULL, "Deinitialize nRF70",
+                  RTSH(nrf_wifi_deinit), 0, 0),
     SHELL_CMD_ARG(tx, NULL,
                   "0 - Disable TX\n"
                   "1 - Enable TX",
