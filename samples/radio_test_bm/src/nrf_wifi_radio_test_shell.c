@@ -907,26 +907,22 @@ static int nrf_wifi_radio_test_init(size_t argc, const char *argv[]) {
 
   if (ctx->conf_params.rx) {
     RT_SHELL_PRINTF_INFO("Disabling ongoing RX test\n");
-
     ctx->conf_params.rx = 0;
-
     status = nrf_wifi_rt_fmac_prog_rx(ctx->rpu_ctx, &ctx->conf_params);
-
     if (status != NRF_WIFI_STATUS_SUCCESS) {
       RT_SHELL_PRINTF_ERROR("Disabling RX failed\n");
+      ctx->conf_params.rx = 1;
       return -ENOEXEC;
     }
   }
 
   if (ctx->conf_params.tx) {
     RT_SHELL_PRINTF_INFO("Disabling ongoing TX test\n");
-
     ctx->conf_params.tx = 0;
-
     status = nrf_wifi_rt_fmac_prog_tx(ctx->rpu_ctx, &ctx->conf_params);
-
     if (status != NRF_WIFI_STATUS_SUCCESS) {
       RT_SHELL_PRINTF_ERROR("Disabling TX failed\n");
+      ctx->conf_params.tx = 1;
       return -ENOEXEC;
     }
   }
@@ -934,16 +930,13 @@ static int nrf_wifi_radio_test_init(size_t argc, const char *argv[]) {
   if (ctx->rf_test_run) {
     if (ctx->rf_test != NRF_WIFI_RF_TEST_TX_TONE) {
       RT_SHELL_PRINTF_ERROR("Unexpected: RF Test (%d) running\n", ctx->rf_test);
-
       return -ENOEXEC;
     }
 
     RT_SHELL_PRINTF_INFO("Disabling ongoing TX tone test\n");
-
     status = nrf_wifi_rt_fmac_rf_test_tx_tone(ctx->rpu_ctx, 0,
 					      ctx->conf_params.tx_tone_freq,
-                                              ctx->conf_params.tx_power);
-
+                ctx->conf_params.tx_power);
     if (status != NRF_WIFI_STATUS_SUCCESS) {
       RT_SHELL_PRINTF_ERROR("Disabling TX tone test failed\n");
       return -ENOEXEC;
@@ -1042,6 +1035,7 @@ static int nrf_wifi_radio_test_set_tx(size_t argc, const char *argv[]) {
 
   if (status != NRF_WIFI_STATUS_SUCCESS) {
     RT_SHELL_PRINTF_ERROR("Programming TX failed\n");
+    ctx->conf_params.tx = !val;
     return -ENOEXEC;
   }
 
@@ -1073,6 +1067,7 @@ static int nrf_wifi_radio_test_set_rx(size_t argc, const char *argv[]) {
 
   if (status != NRF_WIFI_STATUS_SUCCESS) {
     RT_SHELL_PRINTF_ERROR("Programming RX failed\n");
+    ctx->conf_params.rx = !val;
     return -ENOEXEC;
   }
 
