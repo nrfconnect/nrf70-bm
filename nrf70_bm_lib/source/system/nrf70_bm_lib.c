@@ -187,18 +187,14 @@ int nrf70_bm_sys_deinit(void)
 	ret = nrf70_bm_sys_fmac_del_vif_sta();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to delete STA VIF");
-		goto err;
 	}
 
 	// Clean up the WiFi module
 	ret = nrf70_bm_sys_fmac_deinit();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to deinitialize FMAC module");
-		goto err;
 	}
 
-	return 0;
-err:
 	return ret;
 }
 
