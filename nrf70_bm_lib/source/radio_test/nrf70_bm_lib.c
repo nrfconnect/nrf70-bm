@@ -20,7 +20,7 @@ int nrf70_bm_rt_init(struct nrf70_bm_regulatory_info *reg_info)
 	ret = nrf70_bm_rt_fmac_init();
 	if (ret) {
 		NRF70_LOG_ERR("Failed to initialize FMAC module");
-		goto err;
+		goto out;
 	}
 
 	reg_info_curr.chan_info = malloc(sizeof(struct nrf70_bm_reg_chan_info) * NRF70_MAX_CHANNELS);
@@ -60,11 +60,15 @@ int nrf70_bm_rt_init(struct nrf70_bm_regulatory_info *reg_info)
 
 		printf("Regulatory country code set to: %s\n", reg_info_curr.country_code);
 	}
-	return 0;
+
+	ret = 0;
+	goto out;
 deinit:
-	free(reg_info_curr.chan_info);
 	nrf70_bm_rt_fmac_deinit();
-err:
+out:
+	if (reg_info_curr.chan_info) {
+		free(reg_info_curr.chan_info);
+	}
 	return ret;
 }
 
