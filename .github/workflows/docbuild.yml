@@ -60,7 +60,7 @@ jobs:
       - name: install-pip
         working-directory: nrf70_bm_ws
         run: |
-          pip install -r zephyr/doc/requirements.txt --require-hashes
+          pip install -r zephyr/doc/requirements.txt
           pip install breathe
 
       - name: West zephyr-export
