@@ -153,3 +153,51 @@ The repository includes the below sample applications for the testing and the ev
 3. `BM scan and radio test combo` sample to demonstrate runtime switching capability between scan and radio test operational modes for the BM library
 
 The samples can be found under the ``samples/`` directory. The samples can be built using `west`, as explained above.
+
+Tests
+======
+
+The repository includes a comprehensive test suite for validating the nRF70 BM driver functionality:
+
+## Bustest Test Suite
+
+The `tests/bustest/` directory contains Ztest-based unit tests for the nRF70 bus library. These tests validate:
+
+### Register Tests
+- **RDSR0 Test** (`test_rdsr0`): Validates reading of RDSR0 register (0x05) and verifies expected value
+- **RDSR1 Test** (`test_rdsr1`): Validates reading of RDSR1 register (0x1F) and checks RPU awake status
+- **RDSR2 Tests** (`test_rdsr2_*`): Comprehensive tests for RDSR2 register (0x2F) functionality:
+  - Pattern tests: Validates writing and reading specific bit patterns (0xAA, 0x54)
+  - Walking bit tests: Tests individual bit manipulation with walking '1' and walking '0' patterns
+  - WRSR2 integration: Tests writing to WRSR2 register (0x3F) and reading back via RDSR2
+
+### Bus Interface Tests
+- **System Bus Test** (`test_sysbus`): Validates system bus read operations across multiple addresses
+- **Peripheral Bus Test** (`test_peripbus`): Tests peripheral bus read/write operations with 24-bit addressing
+- **Data RAM Test** (`test_dataram`): Memory test for data RAM region
+
+### Test Configuration
+The tests use the following register address macros for maintainability:
+```c
+#define RDSR0_ADDR    0x05
+#define RDSR1_ADDR    0x1F
+#define RDSR2_ADDR    0x2F
+#define WRSR2_ADDR    0x3F
+```
+
+### Running the Tests
+To run the bustest suite:
+
+```sh
+west build -b your_board_name tests/bustest
+west flash
+```
+
+The tests will execute automatically and report results via the console output.
+
+### Test Coverage
+The bustest suite provides comprehensive coverage of:
+- Register read/write operations via QSPI and SPI interfaces
+- Bus interface functionality (system and peripheral buses)
+- Memory operations and validation
+- Error handling and edge cases
