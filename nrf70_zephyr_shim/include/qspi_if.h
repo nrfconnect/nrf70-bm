@@ -74,6 +74,26 @@ int qspi_hl_read(unsigned int addr, void *data, int len);
 
 int qspi_deinit(void);
 
+/**
+ * @brief Read a register via QSPI
+ *
+ * @param dev QSPI device
+ * @param reg_addr Register address (opcode)
+ * @param reg_value Pointer to store the read value
+ * @return int 0 on success, negative error code on failure
+ */
+int qspi_read_reg(const struct device *dev, uint8_t reg_addr, uint8_t *reg_value);
+
+/**
+ * @brief Write a register via QSPI
+ *
+ * @param dev QSPI device
+ * @param reg_addr Register address (opcode)
+ * @param reg_value Value to write
+ * @return int 0 on success, negative error code on failure
+ */
+int qspi_write_reg(const struct device *dev, uint8_t reg_addr, uint8_t reg_value);
+
 void gpio_free_irq(int pin, struct gpio_callback *button_cb_data);
 
 int gpio_request_irq(int pin, struct gpio_callback *button_cb_data, void (*irq_handler)());

@@ -85,7 +85,14 @@ static int spim_xfer_rx(unsigned int addr, void *data, unsigned int len, unsigne
 	return spi_transceive_dt(&spi_spec, &tx, &rx);
 }
 
-int spim_read_reg(uint32_t reg_addr, uint8_t *reg_value)
+/**
+ * @brief Read a register via SPI
+ *
+ * @param reg_addr Register address (opcode)
+ * @param reg_value Pointer to store the read value
+ * @return int 0 on success, negative error code on failure
+ */
+int spim_read_reg(uint8_t reg_addr, uint8_t *reg_value)
 {
 	int err;
 	uint8_t tx_buffer[6] = { reg_addr };
@@ -110,7 +117,8 @@ int spim_read_reg(uint32_t reg_addr, uint8_t *reg_value)
 
 	err = spi_transceive_dt(&spi_spec, &tx, &rx);
 
-	LOG_DBG("err: %d -> %x %x %x %x %x %x", err, sr[0], sr[1], sr[2], sr[3], sr[4], sr[5]);
+	LOG_DBG("SPI read reg 0x%02x: err=%d -> %x %x %x %x %x %x", 
+		reg_addr, err, sr[0], sr[1], sr[2], sr[3], sr[4], sr[5]);
 
 	if (err == 0) {
 		*reg_value = sr[1];
@@ -119,7 +127,14 @@ int spim_read_reg(uint32_t reg_addr, uint8_t *reg_value)
 	return err;
 }
 
-int spim_write_reg(const struct spi_dt_spec *spi_spec, uint32_t reg_addr, const uint8_t reg_value)
+/**
+ * @brief Write a register via SPI
+ *
+ * @param reg_addr Register address (opcode)
+ * @param reg_value Value to write
+ * @return int 0 on success, negative error code on failure
+ */
+int spim_write_reg(uint8_t reg_addr, uint8_t reg_value)
 {
 	int err;
 	uint8_t tx_buffer[] = { reg_addr, reg_value };
@@ -127,14 +142,18 @@ int spim_write_reg(const struct spi_dt_spec *spi_spec, uint32_t reg_addr, const 
 	const struct spi_buf tx_buf = { .buf = tx_buffer, .len = sizeof(tx_buffer) };
 	const struct spi_buf_set tx = { .buffers = &tx_buf, .count = 1 };
 
-	err = spi_transceive_dt(spi_spec, &tx, NULL);
+	err = spi_transceive_dt(&spi_spec, &tx, NULL);
+
+	LOG_DBG("SPI write reg 0x%02x = 0x%02x", reg_addr, reg_value);
 
 	if (err) {
-		LOG_ERR("SPI error: %d", err);
+		LOG_ERR("SPI write reg 0x%02x error: %d", reg_addr, err);
 	}
 
 	return err;
 }
+
+
 
 
 int spim_RDSR1(const struct device *dev, uint8_t *rdsr1)
@@ -153,7 +172,7 @@ int spim_RDSR2(const struct device *dev, uint8_t *rdsr1)
 
 int spim_WRSR2(const struct device *dev, const uint8_t wrsr2)
 {
-	return spim_write_reg(&spi_spec, 0x3F, wrsr2);
+	return spim_write_reg(0x3F, wrsr2);
 }
 
 int _spim_wait_while_rpu_awake(void)
