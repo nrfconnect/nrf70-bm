@@ -1159,9 +1159,7 @@ static int nrf_wifi_radio_test_rx_cap(size_t argc, const char *argv[]) {
     RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
 
     /* Print RX capture data in a hex dump format, 16 samples per line for easier copy/paste */
-    RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
     for (line_idx = 0; line_idx < (total_samples + samples_per_line - 1) / samples_per_line; line_idx++) {
-        RT_SHELL_PRINTF_INFO("%04X: ", line_idx * samples_per_line);
         for (sample_idx = 0; sample_idx < samples_per_line; sample_idx++) {
             size_t idx = line_idx * samples_per_line + sample_idx;
             if (idx < total_samples) {
