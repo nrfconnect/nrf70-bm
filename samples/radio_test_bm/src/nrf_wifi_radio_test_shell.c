@@ -1101,8 +1101,10 @@ static int nrf_wifi_radio_test_rx_cap(size_t argc, const char *argv[]) {
   unsigned char *rx_cap_buf = NULL;
   unsigned char capture_status = 0;
   char *ptr = NULL;
-  unsigned int i = 0;
   int ret = -ENOEXEC;
+  int samples_per_line = 16;
+  int sample_idx, line_idx;
+  size_t total_samples = ctx->conf_params.capture_length;
 
   rx_cap_type = strtoul(argv[1], &ptr, 10);
 
@@ -1157,25 +1159,19 @@ static int nrf_wifi_radio_test_rx_cap(size_t argc, const char *argv[]) {
     RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
 
     /* Print RX capture data in a hex dump format, 16 samples per line for easier copy/paste */
-    {
-        int samples_per_line = 16;
-        int sample_idx, line_idx;
-        size_t total_samples = ctx->conf_params.capture_length;
-
-        RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
-        for (line_idx = 0; line_idx < (total_samples + samples_per_line - 1) / samples_per_line; line_idx++) {
-            RT_SHELL_PRINTF_INFO("%04X: ", line_idx * samples_per_line);
-            for (sample_idx = 0; sample_idx < samples_per_line; sample_idx++) {
-                size_t idx = line_idx * samples_per_line + sample_idx;
-                if (idx < total_samples) {
-                    RT_SHELL_PRINTF_INFO("%02X%02X%02X ", rx_cap_buf[idx * 3 + 2],
-                                         rx_cap_buf[idx * 3 + 1], rx_cap_buf[idx * 3 + 0]);
-                } else {
-                    RT_SHELL_PRINTF_INFO("      ");
-                }
+    RT_SHELL_PRINTF_INFO("************* RX capture data ***********\n");
+    for (line_idx = 0; line_idx < (total_samples + samples_per_line - 1) / samples_per_line; line_idx++) {
+        RT_SHELL_PRINTF_INFO("%04X: ", line_idx * samples_per_line);
+        for (sample_idx = 0; sample_idx < samples_per_line; sample_idx++) {
+            size_t idx = line_idx * samples_per_line + sample_idx;
+            if (idx < total_samples) {
+                RT_SHELL_PRINTF_INFO("%02X%02X%02X ", rx_cap_buf[idx * 3 + 2],
+                                        rx_cap_buf[idx * 3 + 1], rx_cap_buf[idx * 3 + 0]);
+            } else {
+                RT_SHELL_PRINTF_INFO("      ");
             }
-            RT_SHELL_PRINTF_INFO("\n");
         }
+        RT_SHELL_PRINTF_INFO("\n");
     }
     } else if (capture_status == 1) {
         RT_SHELL_PRINTF_INFO("\n************* Capture failed ***********\n");
