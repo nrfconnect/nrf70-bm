@@ -236,7 +236,7 @@ int spim_cmd_rpu_wakeup(uint32_t data)
 		spi_spec_tmp = &spi_spec_8mhz;
 	}
 	/* Waking RPU works reliably only with lowest frequency (8MHz) */
-	return spim_write_reg(spi_spec_tmp, 0x3F, data);
+	return spim_write_reg(0x3F, (uint8_t)data);
 }
 
 unsigned int spim_cmd_sleep_rpu(void)
