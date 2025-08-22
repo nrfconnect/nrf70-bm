@@ -35,5 +35,5 @@ manifest:
     - name: nrfxlib
       remote: ncs
       repo-path: sdk-nrfxlib
-      revision: 85954588939b0d6c46a84ae39ef7926cc2fe9810
+      revision: c2efece046154752d9b926bc9e319fd665fa371d
       path: nrfxlib
